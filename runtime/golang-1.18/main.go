@@ -17,7 +17,7 @@ type Error struct {
 	Details *string `json:"details,omitempty"`
 }
 
-type LambdaT func(w http.ResponseWriter, req *Request) (int, string)
+type LambdaT func(req *Request) (int, string)
 
 func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -43,11 +43,14 @@ func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 
 		if err != nil {
 			w.WriteHeader(500)
-			fmt.Fprintf(w, "Failed to handle request: %s", err.Error())
+			resp, _ := json.Marshal(&Error{
+				Reason: err.Error(),
+			})
+			fmt.Fprint(w, resp)
 			return
 		}
 
-		status, resp := lambda(w, &Request{
+		status, resp := lambda(&Request{
 			Method:  req.Method,
 			Payload: payload,
 		})
