@@ -22,20 +22,29 @@ type LambdaT func(req *Request) (int, string)
 func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
-			w.WriteHeader(500)
-			err, isError := recover().(error)
+			rec := recover()
+
+			if rec == nil {
+				return
+			}
+
 			ret := &Error{
 				Reason: "Failed to handle request",
 			}
 
-			if isError {
+			if err, isError := rec.(error); isError {
 				details := err.Error()
 				ret.Details = &details
 			}
 
+			if sErr, isString := rec.(string); isString {
+				ret.Details = &sErr
+			}
+
 			resp, _ := json.Marshal(ret)
 
-			fmt.Fprint(w, resp)
+			w.WriteHeader(500)
+			fmt.Fprint(w, string(resp))
 		}()
 
 		defer req.Body.Close()
@@ -56,7 +65,7 @@ func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 		})
 
 		w.WriteHeader(status)
-		fmt.Fprint(w, resp)
+		fmt.Fprint(w, string(resp))
 	}
 }
 
