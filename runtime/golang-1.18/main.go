@@ -1,4 +1,4 @@
-package dockerless
+package doless
 
 import (
 	"encoding/json"
@@ -55,7 +55,7 @@ func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 			resp, _ := json.Marshal(&Error{
 				Reason: err.Error(),
 			})
-			fmt.Fprint(w, resp)
+			fmt.Fprint(w, string(resp))
 			return
 		}
 
@@ -65,11 +65,14 @@ func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 		})
 
 		w.WriteHeader(status)
-		fmt.Fprint(w, string(resp))
+		fmt.Fprint(w, resp)
 	}
 }
 
 func Lambda(lambda LambdaT) {
-	http.HandleFunc("/", Handler(lambda))
+	http.HandleFunc("/", Handler(lambda)) // TODO: must be generic handler
+	http.HandleFunc("/health", func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(200)
+	})
 	http.ListenAndServe(":3000", nil)
 }
