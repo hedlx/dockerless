@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	lambda "github.com/hedlx/doless/core/lambda"
 	model "github.com/hedlx/doless/core/model"
+	"github.com/hedlx/doless/core/task"
+	"github.com/hedlx/doless/core/util"
 )
 
 func main() {
+	tSvc := task.CreateTaskService()
 	lSvc := lambda.CreateLambdaService()
 
 	r := gin.Default()
@@ -59,12 +63,23 @@ func main() {
 	})
 
 	r.POST("/lambda/:id/start", func(c *gin.Context) {
-		if err := lSvc.Start(c, c.Param("id")); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+		id := util.UUID()
+		tSvc.Add(id)
 
-		c.JSON(http.StatusOK, gin.H{})
+		go func() {
+			ctx := context.TODO()
+
+			if err := lSvc.Start(ctx, c.Param("id")); err != nil {
+				tSvc.Failed(id, struct {
+					Error string `json:"error"`
+				}{Error: err.Error()})
+				return
+			}
+
+			tSvc.Succeeded(id, nil)
+		}()
+
+		c.JSON(http.StatusAccepted, gin.H{"task": id})
 	})
 
 	r.GET("/runtime", func(c *gin.Context) {
@@ -108,6 +123,17 @@ func main() {
 		}
 
 		c.JSON(http.StatusCreated, runtime)
+	})
+
+	r.GET("/task/:id", func(c *gin.Context) {
+		status := tSvc.Get(c.Param("id"))
+
+		if status == nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		c.JSON(http.StatusOK, task.PrepareStatus(status))
 	})
 
 	r.Run()
