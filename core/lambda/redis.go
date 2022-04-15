@@ -3,6 +3,7 @@ package lambda
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	redis "github.com/go-redis/redis/v8"
 	zap "go.uber.org/zap"
@@ -13,12 +14,32 @@ import (
 )
 
 var rdb *redis.Client
+var DolessID = ""
 
 func init() {
 	redisEndpoint := util.GetStrVar("REDIS_ENDPOINT")
 	rdb = redis.NewClient(&redis.Options{
 		Addr: redisEndpoint,
 	})
+
+	for {
+		res := rdb.Get(context.Background(), "doless-id")
+		err := res.Err()
+		if err == nil {
+			DolessID = res.Val()
+			break
+		}
+
+		if err == redis.Nil {
+			DolessID = util.UUID()
+			if err := rdb.Set(context.Background(), "doless-id", DolessID, 0).Err(); err != nil {
+				panic(err)
+			}
+			break
+		}
+
+		time.Sleep(time.Second)
+	}
 }
 
 func addValue(ctx context.Context, key string, val interface{}) error {

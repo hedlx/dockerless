@@ -17,6 +17,7 @@ import (
 
 type service struct {
 	client *client.Client
+	id     string
 }
 
 type DockerService interface {
@@ -27,14 +28,14 @@ type DockerService interface {
 	Remove(ctx context.Context, lambda model.LambdaM) error
 }
 
-func NewDockerService() (DockerService, error) {
+func NewDockerService(id string) (DockerService, error) {
 	client, err := client.NewClientWithOpts(client.FromEnv)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &service{client: client}, nil
+	return &service{client: client, id: id}, nil
 }
 
 func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reader) (string, error) {
@@ -56,7 +57,7 @@ func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reade
 
 	out, err := s.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 		Tags:   []string{*lambda.Docker.Image},
-		Labels: map[string]string{"lambda": "true"},
+		Labels: map[string]string{"doless": s.id},
 	})
 	if err != nil {
 		return "", err
@@ -85,7 +86,8 @@ func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reade
 	}
 
 	container, err := s.client.ContainerCreate(ctx, &container.Config{
-		Image: *lambda.Docker.Image,
+		Image:  *lambda.Docker.Image,
+		Labels: map[string]string{"doless": s.id},
 	}, nil, nil, nil, *lambda.Docker.Container)
 	if err != nil {
 		s.client.ImageRemove(ctx, *lambda.Docker.Image, types.ImageRemoveOptions{})

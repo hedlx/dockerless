@@ -24,7 +24,7 @@ type LambdaService interface {
 }
 
 func CreateLambdaService() (LambdaService, error) {
-	dockerSvc, err := docker.NewDockerService()
+	dockerSvc, err := docker.NewDockerService(DolessID)
 
 	if err != nil {
 		return nil, err
