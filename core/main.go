@@ -13,7 +13,11 @@ import (
 
 func main() {
 	tSvc := task.CreateTaskService()
-	lSvc := lambda.CreateLambdaService()
+	lSvc, err := lambda.CreateLambdaService()
+
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 
@@ -70,6 +74,26 @@ func main() {
 			ctx := context.TODO()
 
 			if err := lSvc.Start(ctx, c.Param("id")); err != nil {
+				tSvc.Failed(id, struct {
+					Error string `json:"error"`
+				}{Error: err.Error()})
+				return
+			}
+
+			tSvc.Succeeded(id, nil)
+		}()
+
+		c.JSON(http.StatusAccepted, gin.H{"task": id})
+	})
+
+	r.POST("/lambda/:id/destroy", func(c *gin.Context) {
+		id := util.UUID()
+		tSvc.Add(id)
+
+		go func() {
+			ctx := context.TODO()
+
+			if err := lSvc.Destroy(ctx, c.Param("id")); err != nil {
 				tSvc.Failed(id, struct {
 					Error string `json:"error"`
 				}{Error: err.Error()})

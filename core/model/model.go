@@ -11,14 +11,26 @@ type BaseObject struct {
 	UpdatedAt int64  `json:"updated_at"`
 }
 
-type LambdaM struct {
+type BaseLambdaM struct {
 	BaseObject
 	Runtime  string `json:"runtime"`
 	Endpoint string `json:"endpoint"`
 }
 
+type DockerM struct {
+	Image       *string `json:"image,omitempty"`
+	Container   *string `json:"container,omitempty"`
+	ContainerID *string `json:"container_id,omitempty"`
+	Status      string  `json:"status"`
+}
+
+type LambdaM struct {
+	BaseLambdaM
+	Docker DockerM `json:"docker"`
+}
+
 type CreateLambdaM struct {
-	LambdaM
+	BaseLambdaM
 	Archive string `json:"archive"`
 }
 
