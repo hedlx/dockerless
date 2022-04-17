@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"time"
 
-	redis "github.com/go-redis/redis/v8"
-	zap "go.uber.org/zap"
+	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 
-	logger "github.com/hedlx/doless/core/logger"
-	model "github.com/hedlx/doless/core/model"
-	util "github.com/hedlx/doless/core/util"
+	"github.com/hedlx/doless/core/logger"
+	"github.com/hedlx/doless/core/model"
+	"github.com/hedlx/doless/core/util"
 )
 
 var rdb *redis.Client
@@ -42,10 +42,7 @@ func init() {
 	}
 }
 
-func addValue(ctx context.Context, key string, val interface{}) error {
-	// Notice: datarace is possible here, but due to specific of addValue usage
-	// it is not addValue responsibility to manage this at all.
-
+func setValue(ctx context.Context, key string, val interface{}) error {
 	obj, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -59,12 +56,12 @@ func addValue(ctx context.Context, key string, val interface{}) error {
 	return nil
 }
 
-func AddLambda(ctx context.Context, lambda *model.LambdaM) error {
-	return addValue(ctx, "lambda:"+lambda.ID, lambda)
+func SetLambda(ctx context.Context, lambda *model.LambdaM) error {
+	return setValue(ctx, "lambda:"+lambda.ID, lambda)
 }
 
-func AddRuntime(ctx context.Context, runtime *model.RuntimeM) error {
-	return addValue(ctx, "runtime:"+runtime.ID, runtime)
+func SetRuntime(ctx context.Context, runtime *model.RuntimeM) error {
+	return setValue(ctx, "runtime:"+runtime.ID, runtime)
 }
 
 func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string) (<-chan *T, <-chan error) {

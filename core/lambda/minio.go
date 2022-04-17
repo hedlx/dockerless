@@ -14,8 +14,8 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	model "github.com/hedlx/doless/core/model"
-	util "github.com/hedlx/doless/core/util"
+	"github.com/hedlx/doless/core/model"
+	"github.com/hedlx/doless/core/util"
 )
 
 var minioCli *minio.Client

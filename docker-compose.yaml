@@ -15,6 +15,9 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-MINIO_SECRET_KEY}
       TMP_LAMBDA_TTL: ${TMP_LAMBDA_TTL:-900}
+    depends_on:
+      - minio
+      - redis
   minio:
     image: "quay.io/minio/minio:RELEASE.2022-04-01T03-41-39Z"
     command: server --console-address ":9001" /data/minio

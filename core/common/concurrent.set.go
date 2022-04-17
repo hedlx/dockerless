@@ -1,4 +1,4 @@
-package lambda
+package common
 
 import "sync"
 
@@ -14,14 +14,14 @@ func CreateConcurrentSet[T comparable]() ConcurrentSet[T] {
 	}
 }
 
-func (s *ConcurrentSet[T]) Add(key T) {
+func (s ConcurrentSet[T]) Add(key T) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.set[key] = true
 }
 
-func (s *ConcurrentSet[T]) AddUniq(key T) bool {
+func (s ConcurrentSet[T]) AddUniq(key T) bool {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -34,7 +34,7 @@ func (s *ConcurrentSet[T]) AddUniq(key T) bool {
 	return true
 }
 
-func (s *ConcurrentSet[T]) Remove(key T) {
+func (s ConcurrentSet[T]) Remove(key T) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

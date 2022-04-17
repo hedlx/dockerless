@@ -10,9 +10,11 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/hedlx/doless/core/model"
 	lo "github.com/samber/lo"
+
+	"github.com/hedlx/doless/core/model"
 )
 
 type service struct {
@@ -21,11 +23,13 @@ type service struct {
 }
 
 type DockerService interface {
-	Create(ctx context.Context, lambda model.LambdaM, tar io.Reader) (string, error)
-	Start(ctx context.Context, lambda model.LambdaM) error
-	Stop(ctx context.Context, lambda model.LambdaM) error
-	// Inspect(ctx context.Context, lambda model.LambdaM) (<-chan *types.ContainerJSON, error)
-	Remove(ctx context.Context, lambda model.LambdaM) error
+	Create(ctx context.Context, lambda *model.LambdaM, tar io.Reader) (string, error)
+	CreateContainer(ctx context.Context, lambda *model.LambdaM) (string, error)
+	Start(ctx context.Context, lambda *model.LambdaM) error
+	Stop(ctx context.Context, lambda *model.LambdaM) error
+	ListContainers(ctx context.Context) ([]types.Container, error)
+	Inspect(ctx context.Context, id string) (types.ContainerJSON, error)
+	Remove(ctx context.Context, lambda *model.LambdaM) error
 }
 
 func NewDockerService(id string) (DockerService, error) {
@@ -38,12 +42,26 @@ func NewDockerService(id string) (DockerService, error) {
 	return &service{client: client, id: id}, nil
 }
 
-func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reader) (string, error) {
+func (s service) ListContainers(ctx context.Context) ([]types.Container, error) {
+	return s.client.ContainerList(ctx, types.ContainerListOptions{
+		Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: "doless=" + s.id}),
+	})
+}
+
+func (s service) Inspect(ctx context.Context, id string) (types.ContainerJSON, error) {
+	return s.client.ContainerInspect(ctx, id)
+}
+
+func (s service) Create(ctx context.Context, lambda *model.LambdaM, tar io.Reader) (string, error) {
 	if lambda.Docker.Container == nil || lambda.Docker.Image == nil {
 		return "", fmt.Errorf("lambda model is not complete")
 	}
 
-	images, err := s.client.ImageList(ctx, types.ImageListOptions{})
+	images, err := s.client.ImageList(
+		ctx,
+		types.ImageListOptions{
+			Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: "doless=" + s.id}),
+		})
 	if err != nil {
 		return "", err
 	}
@@ -85,6 +103,10 @@ func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reade
 		return "", fmt.Errorf(errorMsg)
 	}
 
+	return s.CreateContainer(ctx, lambda)
+}
+
+func (s service) CreateContainer(ctx context.Context, lambda *model.LambdaM) (string, error) {
 	container, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image:  *lambda.Docker.Image,
 		Labels: map[string]string{"doless": s.id},
@@ -97,7 +119,7 @@ func (s *service) Create(ctx context.Context, lambda model.LambdaM, tar io.Reade
 	return container.ID, nil
 }
 
-func (s *service) Start(ctx context.Context, lambda model.LambdaM) error {
+func (s service) Start(ctx context.Context, lambda *model.LambdaM) error {
 	if lambda.Docker.ContainerID == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}
@@ -118,7 +140,7 @@ func (s *service) Start(ctx context.Context, lambda model.LambdaM) error {
 	return nil
 }
 
-func (s *service) Stop(ctx context.Context, lambda model.LambdaM) error {
+func (s service) Stop(ctx context.Context, lambda *model.LambdaM) error {
 	if lambda.Docker.ContainerID == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}
@@ -139,7 +161,7 @@ func (s *service) Stop(ctx context.Context, lambda model.LambdaM) error {
 	return nil
 }
 
-func (s *service) Remove(ctx context.Context, lambda model.LambdaM) error {
+func (s service) Remove(ctx context.Context, lambda *model.LambdaM) error {
 	if lambda.Docker.Container == nil || lambda.Docker.Image == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}

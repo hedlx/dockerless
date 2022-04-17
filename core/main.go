@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	lambda "github.com/hedlx/doless/core/lambda"
-	model "github.com/hedlx/doless/core/model"
+
+	"github.com/hedlx/doless/core/lambda"
+	"github.com/hedlx/doless/core/model"
 	"github.com/hedlx/doless/core/task"
 	"github.com/hedlx/doless/core/util"
 )
@@ -41,6 +42,26 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"id": id})
+	})
+
+	r.GET("/lambda", func(c *gin.Context) {
+		lambdasC, errC := lambda.GetLambdas(c)
+		lambdas := []*model.LambdaM{}
+
+		for {
+			select {
+			case err := <-errC:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			case lambda, ok := <-lambdasC:
+				if !ok {
+					c.JSON(http.StatusOK, lambdas)
+					return
+				}
+
+				lambdas = append(lambdas, lambda)
+			}
+		}
 	})
 
 	r.POST("/lambda", func(c *gin.Context) {
