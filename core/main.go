@@ -3,16 +3,24 @@ package main
 import (
 	"context"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/hedlx/doless/core/lambda"
+	"github.com/hedlx/doless/core/logger"
 	"github.com/hedlx/doless/core/model"
 	"github.com/hedlx/doless/core/task"
 	"github.com/hedlx/doless/core/util"
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	tSvc := task.CreateTaskService()
 	lSvc, err := lambda.CreateLambdaService()
 
@@ -181,5 +189,29 @@ func main() {
 		c.JSON(http.StatusOK, task.PrepareStatus(status))
 	})
 
-	r.Run()
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.L.Error("Failed to start server", zap.Error(err))
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+
+	logger.L.Info("Shutting down gracefully, press Ctrl+C again to force")
+
+	srvCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(srvCtx); err != nil {
+		logger.L.Fatal("Server forced to shutdown", zap.Error(err))
+	}
+
+	svcCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	lSvc.Stop(svcCtx)
 }

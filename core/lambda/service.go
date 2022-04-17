@@ -24,6 +24,7 @@ type service struct {
 
 type LambdaService interface {
 	Init() error
+	Stop(ctx context.Context)
 	BootstrapRuntime(ctx context.Context, runtime *model.CreateRuntimeM) (*model.CreateRuntimeM, error)
 	BootstrapLambda(ctx context.Context, lambda *model.CreateLambdaM) (*model.CreateLambdaM, error)
 	Start(ctx context.Context, id string) error
@@ -112,6 +113,20 @@ func (s service) Init() error {
 	})
 
 	return nil
+}
+
+func (s *service) Stop(ctx context.Context) {
+	s.inspect.ForEach(func(_ string, stop func()) {
+		stop()
+	})
+
+	s.lambdas.ForEach(func(_ string, lambda model.LambdaM) {
+		if lambda.Docker.ContainerID == nil {
+			return
+		}
+
+		s.dockerSvc.Stop(ctx, &lambda)
+	})
 }
 
 func (s *service) BootstrapRuntime(ctx context.Context, cRuntime *model.CreateRuntimeM) (*model.CreateRuntimeM, error) {
