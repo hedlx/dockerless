@@ -1,0 +1,386 @@
+openapi: 3.0.0
+info:
+  version: '1.0.0'
+  title: 'core'
+  license:
+    name: MIT
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/hedlx/doless/1.0.0
+  - url: 'localhost:8080'
+paths:
+  /upload:
+    post:
+      summary: 'Upload file'
+      operationId: upload
+      tags:
+        - upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: 'File uploaded'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                required:
+                  - id
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /runtime:
+    get:
+      summary: 'List runtimes'
+      operationId: 'listRuntimes'
+      tags:
+        - runtime
+      responses:
+        '200':
+          description: 'Runtimes list'
+          content:
+            application/json:
+             schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Runtime'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 'Create runtime'
+      operationId: 'createRuntime'
+      tags:
+        - runtime
+      requestBody:
+        description: 'Create runtime body'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRuntime'
+      responses:
+        '200':
+          description: 'Created runtime'
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/Runtime'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /runtime/{id}:
+    get:
+      summary: 'Get runtime'
+      operationId: 'getRuntime'
+      tags:
+        - runtime
+      parameters:
+        - name: id
+          in: path
+          description: 'Runtime id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Specific runtime'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/Runtime'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /lambda:
+    get:
+      summary: 'List lambdas'
+      operationId: 'listLambdas'
+      tags:
+        - lambda
+      responses:
+        '200':
+          description: 'Lambdas list'
+          content:
+            application/json:
+             schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Lambda'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 'Create lambda'
+      operationId: 'createLambda'
+      tags:
+        - lambda
+      requestBody:
+        description: 'Create lambda body'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLambda'
+      responses:
+        '200':
+          description: 'Created lambda'
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/Lambda'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /lambda/{id}:
+    get:
+      summary: 'Get lambda'
+      operationId: 'getLambda'
+      tags:
+        - lambda
+      parameters:
+        - name: id
+          in: path
+          description: 'lambda id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Specific lambda'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/Lambda'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /lambda/{id}/start:
+    get:
+      summary: 'Start lambda'
+      operationId: 'startLambda'
+      tags:
+        - lambda
+      parameters:
+        - name: id
+          in: path
+          description: 'lambda id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: 'Created task'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/TaskResponse'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /lambda/{id}/destroy:
+    get:
+      summary: 'Stop lambda and remove docker container'
+      operationId: 'destroyLambda'
+      tags:
+        - lambda
+      parameters:
+        - name: id
+          in: path
+          description: 'lambda id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: 'Created task'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/TaskResponse'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /task/{id}:
+    get:
+      summary: 'Get task status'
+      operationId: 'getTask'
+      tags:
+        - task
+      parameters:
+        - name: id
+          in: path
+          description: 'task id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Specific task'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/TaskStatus'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    BaseObject:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+    BaseRuntime:
+      type: object
+      properties:
+        name:
+          type: string
+    Runtime:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - $ref: '#/components/schemas/BaseRuntime'
+      type: object
+    CreateRuntime:
+      allOf:
+        - $ref: '#/components/schemas/BaseRuntime'
+      type: object
+      properties:
+        dockerfile:
+          type: string
+      required:
+        - dockerfile
+    BaseLambda:
+      type: object
+      properties:
+        name:
+          type: string
+        runtime:
+          type: string
+        endpoint:
+          type: string
+      required:
+        - name
+        - runtime
+        - endpoint
+    Lambda:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - $ref: '#/components/schemas/BaseLambda'
+      type: object
+      properties:
+        docker:
+          $ref: "#/components/schemas/Docker"
+      required:
+        - docker
+    CreateLambda:
+      allOf:
+        - $ref: '#/components/schemas/BaseLambda'
+      type: object
+      properties:
+        archive:
+          type: string
+      required:
+        - archive
+    Docker:
+      type: object
+      properties:
+        image:
+          type: string
+        container:
+          type: string
+        container_id:
+          type: string
+        status:
+          type: string
+      required:
+        - status
+    TaskResponse:
+      type: object
+      properties:
+        task:
+          type: string
+      required:
+        - task
+    TaskStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING, SUCCEEDED, FAILED]
+        started_at:
+          type: integer
+          format: int64
+        finished_at:
+          type: integer
+          format: int64
+        details:
+          type: object
+      required:
+        - status
+        - started_at
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        error:
+          type: string
