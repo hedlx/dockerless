@@ -5,13 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Dockerfile** | **string** |  | 
-**Name** | Pointer to **string** |  | [optional] 
+**Name** | **string** |  | 
 
 ## Methods
 
 ### NewCreateRuntime
 
-`func NewCreateRuntime(dockerfile string, ) *CreateRuntime`
+`func NewCreateRuntime(dockerfile string, name string, ) *CreateRuntime`
 
 NewCreateRuntime instantiates a new CreateRuntime object
 This constructor will assign default values to properties that have it defined,
@@ -65,11 +65,6 @@ and a boolean to check if the value has been set.
 
 SetName sets Name field to given value.
 
-### HasName
-
-`func (o *CreateRuntime) HasName() bool`
-
-HasName returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -29,7 +29,7 @@ import (
 )
 
 func main() {
-    createRuntime := *openapiclient.NewCreateRuntime("Dockerfile_example") // CreateRuntime | Create runtime body
+    createRuntime := *openapiclient.NewCreateRuntime("Dockerfile_example", "Name_example") // CreateRuntime | Create runtime body
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)
