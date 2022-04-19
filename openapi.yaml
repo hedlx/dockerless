@@ -33,12 +33,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                required:
-                  - id
+                $ref: '#/components/schemas/UploadResponse'
         default:
           description: 'Unexpected error'
           content:
@@ -352,6 +347,13 @@ components:
           type: string
       required:
         - status
+    UploadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
     TaskResponse:
       type: object
       properties:

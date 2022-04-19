@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 ## Upload
 
-> InlineResponse200 Upload(ctx).File(file).Execute()
+> UploadResponse Upload(ctx).File(file).Execute()
 
 Upload file
 
@@ -36,7 +36,7 @@ func main() {
         fmt.Fprintf(os.Stderr, "Error when calling `UploadApi.Upload``: %v\n", err)
         fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
     }
-    // response from `Upload`: InlineResponse200
+    // response from `Upload`: UploadResponse
     fmt.Fprintf(os.Stdout, "Response from `UploadApi.Upload`: %v\n", resp)
 }
 ```
@@ -56,7 +56,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**InlineResponse200**](InlineResponse200.md)
+[**UploadResponse**](UploadResponse.md)
 
 ### Authorization
 

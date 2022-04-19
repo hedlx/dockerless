@@ -38,7 +38,7 @@ func (r ApiUploadRequest) File(file *os.File) ApiUploadRequest {
 	return r
 }
 
-func (r ApiUploadRequest) Execute() (*InlineResponse200, *http.Response, error) {
+func (r ApiUploadRequest) Execute() (*UploadResponse, *http.Response, error) {
 	return r.ApiService.UploadExecute(r)
 }
 
@@ -56,13 +56,13 @@ func (a *UploadApiService) Upload(ctx context.Context) ApiUploadRequest {
 }
 
 // Execute executes the request
-//  @return InlineResponse200
-func (a *UploadApiService) UploadExecute(r ApiUploadRequest) (*InlineResponse200, *http.Response, error) {
+//  @return UploadResponse
+func (a *UploadApiService) UploadExecute(r ApiUploadRequest) (*UploadResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *InlineResponse200
+		localVarReturnValue  *UploadResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UploadApiService.Upload")

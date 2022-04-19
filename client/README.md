@@ -99,11 +99,11 @@ Class | Method | HTTP request | Description
  - [CreateRuntime](docs/CreateRuntime.md)
  - [Docker](docs/Docker.md)
  - [Error](docs/Error.md)
- - [InlineResponse200](docs/InlineResponse200.md)
  - [Lambda](docs/Lambda.md)
  - [Runtime](docs/Runtime.md)
  - [TaskResponse](docs/TaskResponse.md)
  - [TaskStatus](docs/TaskStatus.md)
+ - [UploadResponse](docs/UploadResponse.md)
 
 
 ## Documentation For Authorization

@@ -14,31 +14,31 @@ import (
 	"encoding/json"
 )
 
-// InlineResponse200 struct for InlineResponse200
-type InlineResponse200 struct {
+// UploadResponse struct for UploadResponse
+type UploadResponse struct {
 	Id string `json:"id"`
 }
 
-// NewInlineResponse200 instantiates a new InlineResponse200 object
+// NewUploadResponse instantiates a new UploadResponse object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewInlineResponse200(id string) *InlineResponse200 {
-	this := InlineResponse200{}
+func NewUploadResponse(id string) *UploadResponse {
+	this := UploadResponse{}
 	this.Id = id
 	return &this
 }
 
-// NewInlineResponse200WithDefaults instantiates a new InlineResponse200 object
+// NewUploadResponseWithDefaults instantiates a new UploadResponse object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewInlineResponse200WithDefaults() *InlineResponse200 {
-	this := InlineResponse200{}
+func NewUploadResponseWithDefaults() *UploadResponse {
+	this := UploadResponse{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *InlineResponse200) GetId() string {
+func (o *UploadResponse) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -49,7 +49,7 @@ func (o *InlineResponse200) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *InlineResponse200) GetIdOk() (*string, bool) {
+func (o *UploadResponse) GetIdOk() (*string, bool) {
 	if o == nil  {
 		return nil, false
 	}
@@ -57,11 +57,11 @@ func (o *InlineResponse200) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *InlineResponse200) SetId(v string) {
+func (o *UploadResponse) SetId(v string) {
 	o.Id = v
 }
 
-func (o InlineResponse200) MarshalJSON() ([]byte, error) {
+func (o UploadResponse) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 	if true {
 		toSerialize["id"] = o.Id
@@ -69,38 +69,38 @@ func (o InlineResponse200) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-type NullableInlineResponse200 struct {
-	value *InlineResponse200
+type NullableUploadResponse struct {
+	value *UploadResponse
 	isSet bool
 }
 
-func (v NullableInlineResponse200) Get() *InlineResponse200 {
+func (v NullableUploadResponse) Get() *UploadResponse {
 	return v.value
 }
 
-func (v *NullableInlineResponse200) Set(val *InlineResponse200) {
+func (v *NullableUploadResponse) Set(val *UploadResponse) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableInlineResponse200) IsSet() bool {
+func (v NullableUploadResponse) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableInlineResponse200) Unset() {
+func (v *NullableUploadResponse) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableInlineResponse200(val *InlineResponse200) *NullableInlineResponse200 {
-	return &NullableInlineResponse200{value: val, isSet: true}
+func NewNullableUploadResponse(val *UploadResponse) *NullableUploadResponse {
+	return &NullableUploadResponse{value: val, isSet: true}
 }
 
-func (v NullableInlineResponse200) MarshalJSON() ([]byte, error) {
+func (v NullableUploadResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableInlineResponse200) UnmarshalJSON(src []byte) error {
+func (v *NullableUploadResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
