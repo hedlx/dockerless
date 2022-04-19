@@ -6,14 +6,14 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** |  | 
 **Name** | **string** |  | 
-**CreatedAt** | **int64** |  | 
-**UpdatedAt** | **int64** |  | 
+**CreatedAt** | Pointer to **int64** |  | [optional] 
+**UpdatedAt** | Pointer to **int64** |  | [optional] 
 
 ## Methods
 
 ### NewBaseObject
 
-`func NewBaseObject(id string, name string, createdAt int64, updatedAt int64, ) *BaseObject`
+`func NewBaseObject(id string, name string, ) *BaseObject`
 
 NewBaseObject instantiates a new BaseObject object
 This constructor will assign default values to properties that have it defined,
@@ -87,6 +87,11 @@ and a boolean to check if the value has been set.
 
 SetCreatedAt sets CreatedAt field to given value.
 
+### HasCreatedAt
+
+`func (o *BaseObject) HasCreatedAt() bool`
+
+HasCreatedAt returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 
@@ -107,6 +112,11 @@ and a boolean to check if the value has been set.
 
 SetUpdatedAt sets UpdatedAt field to given value.
 
+### HasUpdatedAt
+
+`func (o *BaseObject) HasUpdatedAt() bool`
+
+HasUpdatedAt returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -7,8 +7,8 @@ Name | Type | Description | Notes
 **Docker** | [**Docker**](Docker.md) |  | 
 **Id** | **string** |  | 
 **Name** | **string** |  | 
-**CreatedAt** | **int64** |  | 
-**UpdatedAt** | **int64** |  | 
+**CreatedAt** | Pointer to **int64** |  | [optional] 
+**UpdatedAt** | Pointer to **int64** |  | [optional] 
 **Runtime** | **string** |  | 
 **Endpoint** | **string** |  | 
 
@@ -16,7 +16,7 @@ Name | Type | Description | Notes
 
 ### NewLambda
 
-`func NewLambda(docker Docker, id string, name string, createdAt int64, updatedAt int64, runtime string, endpoint string, ) *Lambda`
+`func NewLambda(docker Docker, id string, name string, runtime string, endpoint string, ) *Lambda`
 
 NewLambda instantiates a new Lambda object
 This constructor will assign default values to properties that have it defined,
@@ -110,6 +110,11 @@ and a boolean to check if the value has been set.
 
 SetCreatedAt sets CreatedAt field to given value.
 
+### HasCreatedAt
+
+`func (o *Lambda) HasCreatedAt() bool`
+
+HasCreatedAt returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 
@@ -130,6 +135,11 @@ and a boolean to check if the value has been set.
 
 SetUpdatedAt sets UpdatedAt field to given value.
 
+### HasUpdatedAt
+
+`func (o *Lambda) HasUpdatedAt() bool`
+
+HasUpdatedAt returns a boolean if a field has been set.
 
 ### GetRuntime
 

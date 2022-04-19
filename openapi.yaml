@@ -272,10 +272,10 @@ components:
           type: string
         name:
           type: string
-        createdAt:
+        created_at:
           type: integer
           format: int64
-        updatedAt:
+        updated_at:
           type: integer
           format: int64
       required:
