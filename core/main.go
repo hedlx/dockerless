@@ -72,6 +72,16 @@ func main() {
 		}
 	})
 
+	r.GET("/lambda/:id", func(c *gin.Context) {
+		lambda, err := lambda.GetLambda(c, c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, lambda)
+	})
+
 	r.POST("/lambda", func(c *gin.Context) {
 		lambda := &model.CreateLambdaM{}
 		err := c.ShouldBind(lambda)
@@ -153,6 +163,16 @@ func main() {
 				runtimes = append(runtimes, runtime)
 			}
 		}
+	})
+
+	r.GET("/runtime/:id", func(c *gin.Context) {
+		runtime, err := lambda.GetRuntime(c, c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, runtime)
 	})
 
 	r.POST("/runtime", func(c *gin.Context) {
