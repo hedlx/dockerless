@@ -185,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /lambda/{id}/start:
-    get:
+    post:
       summary: 'Start lambda'
       operationId: 'startLambda'
       tags:
@@ -211,7 +211,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /lambda/{id}/destroy:
-    get:
+    post:
       summary: 'Stop lambda and remove docker container'
       operationId: 'destroyLambda'
       tags:

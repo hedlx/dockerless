@@ -173,7 +173,7 @@ func (a *LambdaApiService) DestroyLambda(ctx context.Context, id string) ApiDest
 //  @return TaskResponse
 func (a *LambdaApiService) DestroyLambdaExecute(r ApiDestroyLambdaRequest) (*TaskResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
+		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
 		localVarReturnValue  *TaskResponse
@@ -496,7 +496,7 @@ func (a *LambdaApiService) StartLambda(ctx context.Context, id string) ApiStartL
 //  @return TaskResponse
 func (a *LambdaApiService) StartLambdaExecute(r ApiStartLambdaRequest) (*TaskResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
+		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
 		localVarReturnValue  *TaskResponse

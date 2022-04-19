@@ -79,10 +79,10 @@ All URIs are relative to *https://virtserver.swaggerhub.com/hedlx/doless/1.0.0*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *LambdaApi* | [**CreateLambda**](docs/LambdaApi.md#createlambda) | **Post** /lambda | Create lambda
-*LambdaApi* | [**DestroyLambda**](docs/LambdaApi.md#destroylambda) | **Get** /lambda/{id}/destroy | Stop lambda and remove docker container
+*LambdaApi* | [**DestroyLambda**](docs/LambdaApi.md#destroylambda) | **Post** /lambda/{id}/destroy | Stop lambda and remove docker container
 *LambdaApi* | [**GetLambda**](docs/LambdaApi.md#getlambda) | **Get** /lambda/{id} | Get lambda
 *LambdaApi* | [**ListLambdas**](docs/LambdaApi.md#listlambdas) | **Get** /lambda | List lambdas
-*LambdaApi* | [**StartLambda**](docs/LambdaApi.md#startlambda) | **Get** /lambda/{id}/start | Start lambda
+*LambdaApi* | [**StartLambda**](docs/LambdaApi.md#startlambda) | **Post** /lambda/{id}/start | Start lambda
 *RuntimeApi* | [**CreateRuntime**](docs/RuntimeApi.md#createruntime) | **Post** /runtime | Create runtime
 *RuntimeApi* | [**GetRuntime**](docs/RuntimeApi.md#getruntime) | **Get** /runtime/{id} | Get runtime
 *RuntimeApi* | [**ListRuntimes**](docs/RuntimeApi.md#listruntimes) | **Get** /runtime | List runtimes

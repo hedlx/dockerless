@@ -5,10 +5,10 @@ All URIs are relative to *https://virtserver.swaggerhub.com/hedlx/doless/1.0.0*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**CreateLambda**](LambdaApi.md#CreateLambda) | **Post** /lambda | Create lambda
-[**DestroyLambda**](LambdaApi.md#DestroyLambda) | **Get** /lambda/{id}/destroy | Stop lambda and remove docker container
+[**DestroyLambda**](LambdaApi.md#DestroyLambda) | **Post** /lambda/{id}/destroy | Stop lambda and remove docker container
 [**GetLambda**](LambdaApi.md#GetLambda) | **Get** /lambda/{id} | Get lambda
 [**ListLambdas**](LambdaApi.md#ListLambdas) | **Get** /lambda | List lambdas
-[**StartLambda**](LambdaApi.md#StartLambda) | **Get** /lambda/{id}/start | Start lambda
+[**StartLambda**](LambdaApi.md#StartLambda) | **Post** /lambda/{id}/start | Start lambda
 
 
 
