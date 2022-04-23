@@ -1,15 +1,19 @@
 package doless
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-type Request struct {
-	Method  string `json:"method"`
-	Payload []byte `json:"payload"`
+type Input interface{ any }
+type Request[T interface{}] struct {
+	Method  string
+	Path    string
+	Header  http.Header
+	Payload T
 }
 
 type Error struct {
@@ -17,9 +21,9 @@ type Error struct {
 	Details *string `json:"details,omitempty"`
 }
 
-type LambdaT func(req *Request) (int, string)
+type LambdaF[T Input] func(ctx context.Context, req *Request[T]) (int, interface{})
 
-func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
+func Handler[T Input](lambda LambdaF[T]) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			rec := recover()
@@ -47,30 +51,74 @@ func Handler(lambda LambdaT) func(w http.ResponseWriter, req *http.Request) {
 			fmt.Fprint(w, string(resp))
 		}()
 
-		defer req.Body.Close()
-		payload, err := io.ReadAll(req.Body)
-
-		if err != nil {
+		respError := func(err error) {
 			w.WriteHeader(500)
 			resp, _ := json.Marshal(&Error{
 				Reason: err.Error(),
 			})
 			fmt.Fprint(w, string(resp))
-			return
 		}
 
-		status, resp := lambda(&Request{
+		defer req.Body.Close()
+
+		var payload T
+		switch interface{}(lambda).(type) {
+		case LambdaF[io.Reader]:
+			payload = req.Body.(T)
+		case LambdaF[string]:
+			data, err := io.ReadAll(req.Body)
+			req.Body.Close()
+			if err != nil {
+				respError(err)
+				return
+			}
+			payload = interface{}(string(data)).(T)
+		default:
+			data, err := io.ReadAll(req.Body)
+			req.Body.Close()
+			if err != nil {
+				respError(err)
+				return
+			}
+
+			if err := json.Unmarshal(data, &payload); err != nil {
+				respError(err)
+				return
+			}
+		}
+
+		status, resp := lambda(req.Context(), &Request[T]{
 			Method:  req.Method,
+			Path:    req.URL.Path,
+			Header:  req.Header.Clone(),
 			Payload: payload,
 		})
 
 		w.WriteHeader(status)
-		fmt.Fprint(w, resp)
+
+		if resp == nil {
+			return
+		}
+
+		if respT, ok := resp.(io.ReadCloser); ok {
+			io.Copy(w, respT)
+			respT.Close()
+		} else if respT, ok := resp.(string); ok {
+			fmt.Fprint(w, respT)
+		} else {
+			bytes, err := json.Marshal(resp)
+			if err != nil {
+				respError(err)
+				return
+			}
+
+			fmt.Fprint(w, string(bytes))
+		}
 	}
 }
 
-func Lambda(lambda LambdaT) {
-	http.HandleFunc("/", Handler(lambda)) // TODO: must be generic handler
+func Lambda[T Input](lambda LambdaF[T]) {
+	http.HandleFunc("/", Handler(lambda))
 	http.HandleFunc("/health", func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(200)
 	})
