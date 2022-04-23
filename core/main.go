@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -28,6 +29,28 @@ func main() {
 		panic(err)
 	}
 
+	controlSrv, err := StartControlServer(ctx, lSvc, tSvc)
+	if err != nil {
+		panic(err)
+	}
+
+	<-ctx.Done()
+	stop()
+
+	logger.L.Info("Shutting down gracefully, press Ctrl+C again to force")
+
+	srvCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := controlSrv.Shutdown(srvCtx); err != nil {
+		logger.L.Fatal("Server forced to shutdown", zap.Error(err))
+	}
+
+	svcCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	lSvc.Stop(svcCtx)
+}
+
+func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc task.TaskService) (*http.Server, error) {
 	r := gin.Default()
 
 	r.POST("/upload", func(c *gin.Context) {
@@ -210,7 +233,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", util.GetIntVar("CONTROL_PORT")),
 		Handler: r,
 	}
 
@@ -220,18 +243,5 @@ func main() {
 		}
 	}()
 
-	<-ctx.Done()
-	stop()
-
-	logger.L.Info("Shutting down gracefully, press Ctrl+C again to force")
-
-	srvCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(srvCtx); err != nil {
-		logger.L.Fatal("Server forced to shutdown", zap.Error(err))
-	}
-
-	svcCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	lSvc.Stop(svcCtx)
+	return srv, nil
 }

@@ -29,7 +29,7 @@ func CreateLambda(ctx context.Context, lambda CreateLambdaM, path string) (*api.
 		}).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `LambdaApi.CreateLambda``: %v", err)
+		return nil, fmt.Errorf("error when calling `LambdaApi.CreateLambda``: %v", err)
 	}
 
 	return createResp, nil
@@ -40,7 +40,7 @@ func GetLambda(ctx context.Context, id string) (*api.Lambda, error) {
 		GetLambda(ctx, id).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `LambdaApi.GetLambda``: %v", err)
+		return nil, fmt.Errorf("error when calling `LambdaApi.GetLambda``: %v", err)
 	}
 
 	return resp, nil
@@ -51,7 +51,7 @@ func ListLambdas(ctx context.Context) ([]api.Lambda, error) {
 		ListLambdas(ctx).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `LambdaApi.ListLambdas``: %v", err)
+		return nil, fmt.Errorf("error when calling `LambdaApi.ListLambdas``: %v", err)
 	}
 
 	return resp, nil
@@ -62,7 +62,7 @@ func StartLambda(ctx context.Context, id string) (*api.Lambda, error) {
 		StartLambda(ctx, id).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `LambdaApi.StartLambda``: %v", err)
+		return nil, fmt.Errorf("error when calling `LambdaApi.StartLambda``: %v", err)
 	}
 
 	res, err := pollTask(ctx, taskResp.GetTask())
@@ -71,7 +71,7 @@ func StartLambda(ctx context.Context, id string) (*api.Lambda, error) {
 	}
 
 	if res.GetStatus() == "FAILED" {
-		return nil, fmt.Errorf("Error when starting lambda: %v", res.GetDetails()["error"])
+		return nil, fmt.Errorf("error when starting lambda: %v", res.GetDetails()["error"])
 	}
 
 	return GetLambda(ctx, id)
@@ -82,7 +82,7 @@ func DestroyLambda(ctx context.Context, id string) error {
 		DestroyLambda(ctx, id).
 		Execute()
 	if err != nil {
-		return fmt.Errorf("Error when calling `LambdaApi.DestroyLambda``: %v", err)
+		return fmt.Errorf("error when calling `LambdaApi.DestroyLambda``: %v", err)
 	}
 
 	res, err := pollTask(ctx, taskResp.GetTask())
@@ -91,7 +91,7 @@ func DestroyLambda(ctx context.Context, id string) error {
 	}
 
 	if res.GetStatus() == "FAILED" {
-		return fmt.Errorf("Error when destroying lambda: %v", res.GetDetails()["error"])
+		return fmt.Errorf("error when destroying lambda: %v", res.GetDetails()["error"])
 	}
 
 	return nil

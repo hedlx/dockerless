@@ -21,7 +21,7 @@ func CreateRuntime(ctx context.Context, name string, path string) (*api.Runtime,
 		}).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `RuntimeApi.CreateRuntime``: %v", err)
+		return nil, fmt.Errorf("error when calling `RuntimeApi.CreateRuntime``: %v", err)
 	}
 
 	return createResp, nil
@@ -32,7 +32,7 @@ func ListRuntimes(ctx context.Context) ([]api.Runtime, error) {
 		ListRuntimes(ctx).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("Error when calling `RuntimeApi.ListRuntimes``: %v", err)
+		return nil, fmt.Errorf("error when calling `RuntimeApi.ListRuntimes``: %v", err)
 	}
 
 	return listResp, nil
