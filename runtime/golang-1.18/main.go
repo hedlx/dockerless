@@ -9,7 +9,7 @@ import (
 )
 
 type Input interface{ any }
-type Request[T interface{}] struct {
+type Request[T Input] struct {
 	Method  string
 	Path    string
 	Header  http.Header
