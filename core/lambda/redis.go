@@ -64,49 +64,60 @@ func SetRuntime(ctx context.Context, runtime *model.RuntimeM) error {
 	return setValue(ctx, "runtime:"+runtime.ID, runtime)
 }
 
+func scanValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string, handler func(x *T) bool) error {
+	var cursor uint64
+	traversed := map[string]bool{}
+
+	for {
+		var keys []string
+		var err error
+
+		keys, cursor, err = rdb.Scan(ctx, cursor, prefix+":*", 0).Result()
+
+		if err != nil {
+			logger.L.Error(
+				"Failed to scan redis",
+				zap.Error(err),
+			)
+			return err
+		}
+
+		for _, key := range keys {
+			if traversed[key] {
+				continue
+			}
+
+			traversed[key] = true
+			val, err := getValueByKey[T](ctx, key)
+			if err != nil {
+				continue
+			}
+
+			if !handler(val) {
+				return nil
+			}
+		}
+
+		if cursor == 0 {
+			return nil
+		}
+	}
+}
+
 func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string) (<-chan *T, <-chan error) {
 	resC := make(chan *T)
 	errC := make(chan error)
 
 	go func() {
-		var cursor uint64
-		traversed := map[string]bool{}
+		err := scanValues(ctx, prefix, func(val *T) bool {
+			resC <- val
+			return true
+		})
 
-		for {
-			var keys []string
-			var err error
+		close(resC)
 
-			keys, cursor, err = rdb.Scan(ctx, cursor, prefix+":*", 0).Result()
-
-			if err != nil {
-				close(resC)
-				errC <- err
-
-				logger.L.Error(
-					"Failed to scan redis",
-					zap.Error(err),
-				)
-				return
-			}
-
-			for _, key := range keys {
-				if traversed[key] {
-					continue
-				}
-
-				traversed[key] = true
-				val, err := getValueByKey[T](ctx, key)
-				if err != nil {
-					continue
-				}
-
-				resC <- val
-			}
-
-			if cursor == 0 {
-				close(resC)
-				return
-			}
+		if err != nil {
+			errC <- err
 		}
 	}()
 
@@ -158,4 +169,22 @@ func GetLambda(ctx context.Context, id string) (*model.LambdaM, error) {
 
 func GetRuntime(ctx context.Context, id string) (*model.RuntimeM, error) {
 	return getValue[model.RuntimeM](ctx, "runtime", id)
+}
+
+func findValue[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string, predicate func(x *T) bool) (*T, error) {
+	var res *T
+	err := scanValues(ctx, prefix, func(val *T) bool {
+		if predicate(val) {
+			res = val
+			return false
+		}
+
+		return true
+	})
+
+	return res, err
+}
+
+func FindLambda(ctx context.Context, predicate func(val *model.LambdaM) bool) (*model.LambdaM, error) {
+	return findValue(ctx, "lambda", predicate)
 }

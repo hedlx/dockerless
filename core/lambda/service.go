@@ -131,7 +131,7 @@ func (s *service) Stop(ctx context.Context) {
 
 func (s *service) BootstrapRuntime(ctx context.Context, cRuntime *model.CreateRuntimeM) (*model.CreateRuntimeM, error) {
 	if succ := s.bootstrapping.AddUniq(cRuntime.Dockerfile); !succ {
-		return nil, fmt.Errorf("Lambda with '%s' archive is already in progress", cRuntime.Dockerfile)
+		return nil, fmt.Errorf("lambda with '%s' archive is already in progress", cRuntime.Dockerfile)
 	}
 	defer s.bootstrapping.Remove(cRuntime.Dockerfile)
 
@@ -160,8 +160,18 @@ func (s *service) BootstrapRuntime(ctx context.Context, cRuntime *model.CreateRu
 }
 
 func (s *service) BootstrapLambda(ctx context.Context, cLambda *model.CreateLambdaM) (*model.CreateLambdaM, error) {
+	existing, err := FindLambda(ctx, func(val *model.LambdaM) bool {
+		return val.Endpoint == cLambda.Endpoint
+	})
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("endpoint already exists: %s", cLambda.Endpoint)
+	}
+
 	if succ := s.bootstrapping.AddUniq(cLambda.Archive); !succ {
-		return nil, fmt.Errorf("Lambda with '%s' archive is already being bootstrapped", cLambda.Archive)
+		return nil, fmt.Errorf("lambda with '%s' archive is already being bootstrapped", cLambda.Archive)
 	}
 	defer s.bootstrapping.Remove(cLambda.Archive)
 
@@ -224,7 +234,7 @@ func (s service) start(ctx context.Context, lambda *model.LambdaM) (string, erro
 
 func (s service) Start(ctx context.Context, id string) error {
 	if succ := s.starting.AddUniq(id); !succ {
-		return fmt.Errorf("Lambda '%s' is already being processed", id)
+		return fmt.Errorf("lambda '%s' is already being processed", id)
 	}
 	defer s.starting.Remove(id)
 
@@ -250,7 +260,7 @@ func (s service) Start(ctx context.Context, id string) error {
 
 func (s service) Destroy(ctx context.Context, id string) error {
 	if succ := s.starting.AddUniq(id); !succ {
-		return fmt.Errorf("Lambda '%s' is already being processed", id)
+		return fmt.Errorf("lambda '%s' is already being processed", id)
 	}
 	defer s.starting.Remove(id)
 
