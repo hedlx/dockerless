@@ -100,8 +100,6 @@ github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
-github.com/hedlx/doless/client v0.0.0-20220419163658-54e75ea9fe0a h1:nEN43ZfUQyEY1lWHps8/AX5P/KpaY1h4fI5KGx8jjQg=
-github.com/hedlx/doless/client v0.0.0-20220419163658-54e75ea9fe0a/go.mod h1:rTFl8Gg5Dhq15ZqApWYrR4j48JVPKDD2IMxQloQna98=
 github.com/hedlx/doless/client v0.0.0-20220419184639-a13848212871 h1:mzzjRIRju/KRgQAVb+Qw4yidjcY8PyCcE4OVK7E+vk8=
 github.com/hedlx/doless/client v0.0.0-20220419184639-a13848212871/go.mod h1:rTFl8Gg5Dhq15ZqApWYrR4j48JVPKDD2IMxQloQna98=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=

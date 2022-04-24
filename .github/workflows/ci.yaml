@@ -1,0 +1,134 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches:
+      - 'master'
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⏬ Checkout
+        uses: actions/checkout@v3
+
+      - name: 📦 Set up Go
+        id: setup-go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - name: 📦 Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      - name: 📦 Set up openapi-generator
+        id: setup-openapi
+        run: |
+          mkdir -p ~/.local/bin
+          echo ~/.local/bin >> $GITHUB_PATH
+          PATH=~/.local/bin:$PATH
+          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/5.4.0/openapi-generator-cli-5.4.0.jar -O ~/.local/bin/openapi-generator-cli.jar
+          echo -e '#!/bin/sh\nexec java -jar ~/.local/bin/openapi-generator-cli.jar "$@"' > ~/.local/bin/openapi-generator
+          chmod +x ~/.local/bin/openapi-generator
+          openapi-generator version
+
+      - name: Check go.mod
+        if: steps.setup-openapi.outcome == 'success'
+        run: |
+          git clean -fxd && git reset --hard
+          for i in $(find . -name go.mod); do
+            echo "$i"
+            cd "$GITHUB_WORKSPACE/${i%/go.mod}"
+            go mod tidy
+          done
+          cd "$GITHUB_WORKSPACE"
+          git diff --exit-code
+
+      - name: Check api generation
+        if: steps.setup-openapi.outcome == 'success'
+        run: |
+          git clean -fxd && git reset --hard
+          make api
+          git diff --exit-code
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo go-outcome=${{ steps.setup-go.outcome }}
+          git clean -fxd && git reset --hard
+
+      - name: Staticcheck cli
+        if: steps.setup-openapi.outcome == 'success'
+        uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          install-go: false
+          version: '2022.1'
+          working-directory: cli
+
+      - name: Staticcheck core
+        if: steps.setup-openapi.outcome == 'success'
+        uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          install-go: false
+          version: '2022.1'
+          working-directory: core
+
+  cli:
+    name: Build cli
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⏬ Checkout
+        uses: actions/checkout@v3
+      - name: 📦 Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - name: 🏗  Build
+        working-directory: cli
+        run: |
+          go build .
+      - name: ⬆️ Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: cli
+          path: cli/cli
+
+  core:
+    name: Build core
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⏬ Checkout
+        uses: actions/checkout@v3
+      - name: 🏗 Build image
+        run: docker build core -t doless-core:latest
+      - name: ⬆️ Upload doless-core Docker image
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: "doless-core:latest"
+
+  run:
+    name: Run
+    needs: [cli, core]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⏬ Checkout
+        uses: actions/checkout@v3
+      - name: ⬇️ Download cli binary
+        uses: actions/download-artifact@v3
+        with:
+          name: cli
+          path: cli
+      - run: chmod +x cli/cli
+      - name: ⬇️ Download doless-core docker image
+        uses: ishworkh/docker-image-artifact-download@v1
+        with:
+          image: "doless-core:latest"
+      - name: Run
+        run: |
+          set -x
+          cli/cli --help
+          docker-compose up -d
+          sleep 5
+          cli/cli runtime list
+          docker-compose down

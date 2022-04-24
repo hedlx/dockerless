@@ -10,6 +10,6 @@ api:
 		--git-user-id "hedlx" \
 		--git-repo-id "doless/client"
 	mkdir -p client
-	cp -r client-tmp/{*.go,go.mod,go.sum,docs,README.md} client/
+	cd client-tmp && cp -r *.go go.mod go.sum docs README.md ../client/
 	rm -rf client-tmp
 	cd client && go mod tidy
