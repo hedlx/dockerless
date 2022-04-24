@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 )
 
 type BaseObject struct {
@@ -47,8 +48,22 @@ func ValidateCreateLambdaM(lambda *CreateLambdaM) error {
 		return fmt.Errorf("'endpoint' is required")
 	}
 
+	if err := ValidateEndpoint(lambda.Endpoint); err != nil {
+		return err
+	}
+
 	if lambda.Archive == "" {
 		return fmt.Errorf("'archive' is required")
+	}
+
+	return nil
+}
+
+var EndpointRegex = regexp.MustCompile("^(/[0-9a-zA-Z-_]+)+$")
+
+func ValidateEndpoint(path string) error {
+	if !EndpointRegex.MatchString(path) {
+		return fmt.Errorf("'endpoint' doesn't conform regex: %s", EndpointRegex.String())
 	}
 
 	return nil

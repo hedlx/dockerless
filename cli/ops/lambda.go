@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	api "github.com/hedlx/doless/client"
@@ -19,7 +20,7 @@ func CreateLambda(ctx context.Context, lambda CreateLambdaM, path string) (*api.
 		return nil, err
 	}
 
-	createResp, _, err := client.LambdaApi.
+	createResp, r, err := client.LambdaApi.
 		CreateLambda(ctx).
 		CreateLambda(api.CreateLambda{
 			Name:     lambda.Name,
@@ -29,7 +30,9 @@ func CreateLambda(ctx context.Context, lambda CreateLambdaM, path string) (*api.
 		}).
 		Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error when calling `LambdaApi.CreateLambda``: %v", err)
+		var details api.Error
+		json.NewDecoder(r.Body).Decode(&details)
+		return nil, fmt.Errorf("error when calling `LambdaApi.CreateLambda``: %v\n%v", err, details.GetError())
 	}
 
 	return createResp, nil
