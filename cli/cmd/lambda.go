@@ -123,9 +123,6 @@ func init() {
 	lambdaCreateCmd.MarkFlagRequired("endpoint")
 	lambdaCreateCmd.MarkFlagRequired("path")
 
-	lambdaCreateCmd.Flags().StringVarP(&lambdaID, "id", "i", "", "id")
-	lambdaCreateCmd.MarkFlagRequired("id")
-
 	lambdaStartCmd.Flags().StringVarP(&lambdaID, "id", "i", "", "id")
 	lambdaStartCmd.MarkFlagRequired("id")
 
