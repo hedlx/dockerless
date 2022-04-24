@@ -70,6 +70,7 @@ func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix str
 
 	go func() {
 		var cursor uint64
+		traversed := map[string]bool{}
 
 		for {
 			var keys []string
@@ -89,6 +90,11 @@ func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix str
 			}
 
 			for _, key := range keys {
+				if traversed[key] {
+					continue
+				}
+
+				traversed[key] = true
 				val, err := getValueByKey[T](ctx, key)
 				if err != nil {
 					continue
