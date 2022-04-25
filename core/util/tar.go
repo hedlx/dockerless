@@ -11,14 +11,14 @@ import (
 
 func Tar(src string) (io.Reader, error) {
 	if _, err := os.Stat(src); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Path does not exist: %s", src)
+		return nil, fmt.Errorf("path does not exist: %s", src)
 	}
 
 	var buffer bytes.Buffer
 	writer := tar.NewWriter(&buffer)
 	pathLen := len(src)
 
-	err := filepath.Walk(src, func(file string, info os.FileInfo, err error) error {
+	err := filepath.Walk(src, func(file string, info os.FileInfo, lerr error) error {
 		header, err := tar.FileInfoHeader(info, file)
 		if err != nil {
 			return err

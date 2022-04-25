@@ -70,7 +70,7 @@ func (s service) Create(ctx context.Context, lambda *model.LambdaM, tar io.Reade
 		return len(image.RepoTags) > 0 && strings.Split(image.RepoTags[0], ":")[0] == *lambda.Docker.Image
 	})
 	if exists {
-		return "", fmt.Errorf("Image already exists: %s", *lambda.Docker.Image)
+		return "", fmt.Errorf("image already exists: %s", *lambda.Docker.Image)
 	}
 
 	out, err := s.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
