@@ -76,23 +76,14 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	})
 
 	r.GET("/lambda", func(c *gin.Context) {
-		lambdasC, errC := lambda.GetLambdas(c)
-		lambdas := []*model.LambdaM{}
+		lambdas, err := lambda.GetLambdas(c)
 
-		for {
-			select {
-			case err := <-errC:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			case lambda, ok := <-lambdasC:
-				if !ok {
-					c.JSON(http.StatusOK, lambdas)
-					return
-				}
-
-				lambdas = append(lambdas, lambda)
-			}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
+
+		c.JSON(http.StatusOK, lambdas)
 	})
 
 	r.GET("/lambda/:id", func(c *gin.Context) {
@@ -169,23 +160,13 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	})
 
 	r.GET("/runtime", func(c *gin.Context) {
-		runtimeC, errC := lambda.GetRuntimes(c)
-		runtimes := []*model.RuntimeM{}
-
-		for {
-			select {
-			case err := <-errC:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			case runtime, ok := <-runtimeC:
-				if !ok {
-					c.JSON(http.StatusOK, runtimes)
-					return
-				}
-
-				runtimes = append(runtimes, runtime)
-			}
+		runtimes, err := lambda.GetRuntimes(c)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
+
+		c.JSON(http.StatusOK, runtimes)
 	})
 
 	r.GET("/runtime/:id", func(c *gin.Context) {

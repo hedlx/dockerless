@@ -55,21 +55,14 @@ func CreateLambdaService() (LambdaService, error) {
 
 func (s service) Init() error {
 	ctx := context.Background()
-	lambdaC, errC := GetLambdas(ctx)
+	lambdas, err := GetLambdas(ctx)
 
-	hasLambdas := true
-	for hasLambdas {
-		select {
-		case err := <-errC:
-			return err
-		case lambda, ok := <-lambdaC:
-			if !ok {
-				hasLambdas = false
-				break
-			}
+	if err != nil {
+		return err
+	}
 
-			s.lambdas.Set(lambda.ID, *lambda)
-		}
+	for _, lambda := range lambdas {
+		s.lambdas.Set(lambda.ID, *lambda)
 	}
 
 	var lambdaInitErr error

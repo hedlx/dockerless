@@ -104,31 +104,26 @@ func scanValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix st
 	}
 }
 
-func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string) (<-chan *T, <-chan error) {
-	resC := make(chan *T)
-	errC := make(chan error)
+func getValues[T model.LambdaM | model.RuntimeM](ctx context.Context, prefix string) ([]*T, error) {
+	res := []*T{}
 
-	go func() {
-		err := scanValues(ctx, prefix, func(val *T) bool {
-			resC <- val
-			return true
-		})
+	err := scanValues(ctx, prefix, func(val *T) bool {
+		res = append(res, val)
+		return true
+	})
 
-		close(resC)
+	if err != nil {
+		return nil, err
+	}
 
-		if err != nil {
-			errC <- err
-		}
-	}()
-
-	return resC, errC
+	return res, nil
 }
 
-func GetLambdas(ctx context.Context) (<-chan *model.LambdaM, <-chan error) {
+func GetLambdas(ctx context.Context) ([]*model.LambdaM, error) {
 	return getValues[model.LambdaM](ctx, "lambda")
 }
 
-func GetRuntimes(ctx context.Context) (<-chan *model.RuntimeM, <-chan error) {
+func GetRuntimes(ctx context.Context) ([]*model.RuntimeM, error) {
 	return getValues[model.RuntimeM](ctx, "runtime")
 }
 
