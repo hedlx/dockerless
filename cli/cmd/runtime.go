@@ -18,13 +18,13 @@ var runtimeCmd = &cobra.Command{
 }
 
 var runtimeName string
-var dockerfile string
 
 var runtimeCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		runtime, err := ops.CreateRuntime(cmd.Context(), runtimeName, dockerfile)
+		runtime, err := ops.CreateRuntime(cmd.Context(), runtimeName, args[0])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
@@ -56,7 +56,5 @@ func init() {
 	runtimeCmd.AddCommand(runtimeListCmd)
 
 	runtimeCreateCmd.Flags().StringVarP(&runtimeName, "name", "n", "", "name")
-	runtimeCreateCmd.Flags().StringVarP(&dockerfile, "dockerfile", "d", "", "dockerfile path")
 	runtimeCreateCmd.MarkFlagRequired("name")
-	runtimeCreateCmd.MarkFlagRequired("dockerfile")
 }
