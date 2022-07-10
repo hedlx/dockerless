@@ -23,7 +23,7 @@ services:
       - minio
       - redis
   minio:
-    image: "quay.io/minio/minio:RELEASE.2022-04-01T03-41-39Z"
+    image: "quay.io/minio/minio"
     command: server --console-address ":9001" /data/minio
     hostname: minio
     ports:

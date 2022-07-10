@@ -8,9 +8,9 @@ import (
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 
-	"github.com/hedlx/doless/core/logger"
-	"github.com/hedlx/doless/core/model"
-	"github.com/hedlx/doless/core/util"
+	"github.com/hedlx/doless/manager/logger"
+	"github.com/hedlx/doless/manager/model"
+	"github.com/hedlx/doless/manager/util"
 )
 
 var rdb *redis.Client
