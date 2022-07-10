@@ -217,7 +217,7 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	})
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", util.GetIntVar("CONTROL_PORT")),
+		Addr:    fmt.Sprintf(":%d", util.GetIntVar("PORT")),
 		Handler: r,
 	}
 

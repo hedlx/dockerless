@@ -26,7 +26,7 @@ const (
 	runtimeBucket = "runtime"
 )
 
-var tmpLambdaTTL time.Duration = time.Duration(util.GetIntVar("TMP_LAMBDA_TTL"))
+var tmpTTL time.Duration = time.Duration(util.GetIntVar("TMP_TTL"))
 
 func init() {
 	endpoint := util.GetStrVar("MINIO_ENDPOINT")
@@ -80,7 +80,7 @@ func UploadTmp(ctx context.Context, file io.Reader) (string, error) {
 	// Remove uploaded file after N minutes after upload
 	// TODO: make possible to pock tmp file to reset timeout
 	go func() {
-		time.Sleep(tmpLambdaTTL * time.Second)
+		time.Sleep(tmpTTL * time.Second)
 		minioCli.RemoveObject(context.Background(), tmpBucket, id, minio.RemoveObjectOptions{})
 	}()
 
