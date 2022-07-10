@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  core:
-    build: core
-    image: doless-core:latest
+  manager:
+    build: manager
+    image: doless-manager:latest
     restart: unless-stopped
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
