@@ -66,13 +66,13 @@ jobs:
           version: '2022.1'
           working-directory: cli
 
-      - name: Staticcheck core
+      - name: Staticcheck manager
         if: steps.setup-openapi.outcome == 'success'
         uses: dominikh/staticcheck-action@v1.2.0
         with:
           install-go: false
           version: '2022.1'
-          working-directory: core
+          working-directory: manager
 
   cli:
     name: Build cli
@@ -94,22 +94,22 @@ jobs:
           name: cli
           path: cli/cli
 
-  core:
-    name: Build core
+  manager:
+    name: Build manager
     runs-on: ubuntu-latest
     steps:
       - name: ⏬ Checkout
         uses: actions/checkout@v3
       - name: 🏗 Build image
-        run: docker build core -t doless-core:latest
-      - name: ⬆️ Upload doless-core Docker image
+        run: docker build manager -t doless-manager:latest
+      - name: ⬆️ Upload doless-manager Docker image
         uses: ishworkh/docker-image-artifact-upload@v1
         with:
-          image: "doless-core:latest"
+          image: "doless-manager:latest"
 
   run:
     name: Run
-    needs: [cli, core]
+    needs: [cli, manager]
     runs-on: ubuntu-latest
     steps:
       - name: ⏬ Checkout
@@ -120,10 +120,10 @@ jobs:
           name: cli
           path: cli
       - run: chmod +x cli/cli
-      - name: ⬇️ Download doless-core docker image
+      - name: ⬇️ Download doless-manager docker image
         uses: ishworkh/docker-image-artifact-download@v1
         with:
-          image: "doless-core:latest"
+          image: "doless-manager:latest"
       - name: Run
         run: |
           set -x
