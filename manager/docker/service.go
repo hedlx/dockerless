@@ -14,7 +14,7 @@ import (
 	"github.com/docker/docker/client"
 	lo "github.com/samber/lo"
 
-	"github.com/hedlx/doless/core/model"
+	"github.com/hedlx/doless/manager/model"
 )
 
 type service struct {

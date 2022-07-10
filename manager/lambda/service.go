@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hedlx/doless/core/common"
-	"github.com/hedlx/doless/core/docker"
-	"github.com/hedlx/doless/core/logger"
-	"github.com/hedlx/doless/core/model"
-	"github.com/hedlx/doless/core/util"
+	"github.com/hedlx/doless/manager/common"
+	"github.com/hedlx/doless/manager/docker"
+	"github.com/hedlx/doless/manager/logger"
+	"github.com/hedlx/doless/manager/model"
+	"github.com/hedlx/doless/manager/util"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )

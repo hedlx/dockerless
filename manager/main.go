@@ -11,11 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/hedlx/doless/core/lambda"
-	"github.com/hedlx/doless/core/logger"
-	"github.com/hedlx/doless/core/model"
-	"github.com/hedlx/doless/core/task"
-	"github.com/hedlx/doless/core/util"
+	"github.com/hedlx/doless/manager/lambda"
+	"github.com/hedlx/doless/manager/logger"
+	"github.com/hedlx/doless/manager/model"
+	"github.com/hedlx/doless/manager/task"
+	"github.com/hedlx/doless/manager/util"
 )
 
 func main() {
@@ -56,18 +56,21 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	r.POST("/upload", func(c *gin.Context) {
 		fileHeader, err := c.FormFile("file")
 		if err != nil {
+			logger.L.Error("internal server error", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		file, err := fileHeader.Open()
 		if err != nil {
+			logger.L.Error("internal server error", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		id, err := lambda.UploadTmp(c, file)
 		if err != nil {
+			logger.L.Error("internal server error", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

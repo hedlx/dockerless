@@ -6,13 +6,13 @@ COPY go.sum .
 RUN go mod download
 COPY . .
 
-RUN go build -o /doless
+RUN go build -o /manager
 
 # - - - - - - - - - - # 
 
 FROM alpine AS lambda
 
 WORKDIR /
-COPY --from=bootstrap /doless /doless
+COPY --from=bootstrap /manager /manager
 
-ENTRYPOINT ["/doless"]
+ENTRYPOINT ["/manager"]

@@ -1,4 +1,4 @@
-module github.com/hedlx/doless/core
+module github.com/hedlx/doless/manager
 
 go 1.18
 
@@ -34,6 +34,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20220221023154-0b2280d3ff96 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/hedlx/doless v0.0.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.15.1 // indirect

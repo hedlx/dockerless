@@ -1,15 +1,17 @@
 package util
 
 import (
-	"log"
 	"os"
 	"strconv"
+
+	"github.com/hedlx/doless/manager/logger"
+	"go.uber.org/zap"
 )
 
 func GetStrVar(name string) string {
 	v := os.Getenv(name)
 	if v == "" {
-		log.Fatal(name, " is missing")
+		logger.L.Fatal("env var is missing", zap.String("env_var", name))
 	}
 
 	return v
