@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	api "github.com/hedlx/doless/client"
 	"github.com/hedlx/doless/manager/common"
 	"github.com/hedlx/doless/manager/docker"
 	"github.com/hedlx/doless/manager/logger"
-	"github.com/hedlx/doless/manager/model"
 	"github.com/hedlx/doless/manager/util"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -18,15 +18,15 @@ type service struct {
 	dockerSvc     docker.DockerService
 	bootstrapping common.ConcurrentSet[string]
 	starting      common.ConcurrentSet[string]
-	lambdas       common.ConcurrentMap[string, model.LambdaM]
+	lambdas       common.ConcurrentMap[string, api.Lambda]
 	inspect       common.ConcurrentMap[string, func()]
 }
 
 type LambdaService interface {
 	Init() error
 	Stop(ctx context.Context)
-	BootstrapRuntime(ctx context.Context, runtime *model.CreateRuntimeM) (*model.CreateRuntimeM, error)
-	BootstrapLambda(ctx context.Context, lambda *model.CreateLambdaM) (*model.CreateLambdaM, error)
+	BootstrapRuntime(ctx context.Context, runtime *api.CreateRuntime) (*api.Runtime, error)
+	BootstrapLambda(ctx context.Context, lambda *api.CreateLambda) (*api.Lambda, error)
 	Start(ctx context.Context, id string) error
 	Destroy(ctx context.Context, id string) error
 }
@@ -42,7 +42,7 @@ func CreateLambdaService() (LambdaService, error) {
 		dockerSvc:     dockerSvc,
 		bootstrapping: common.CreateConcurrentSet[string](),
 		starting:      common.CreateConcurrentSet[string](),
-		lambdas:       common.CreateConcurrentMap[string, model.LambdaM](),
+		lambdas:       common.CreateConcurrentMap[string, api.Lambda](),
 		inspect:       common.CreateConcurrentMap[string, func()](),
 	}
 
@@ -62,16 +62,16 @@ func (s service) Init() error {
 	}
 
 	for _, lambda := range lambdas {
-		s.lambdas.Set(lambda.ID, *lambda)
+		s.lambdas.Set(lambda.Id, *lambda)
 	}
 
 	var lambdaInitErr error
-	lo.ForEach(s.lambdas.Values(), func(lambda model.LambdaM, _ int) {
-		if lambda.Docker.ContainerID == nil {
+	lo.ForEach(s.lambdas.Values(), func(lambda api.Lambda, _ int) {
+		if lambda.Docker.ContainerId == nil {
 			return
 		}
 
-		container, err := s.dockerSvc.Inspect(ctx, *lambda.Docker.ContainerID)
+		container, err := s.dockerSvc.Inspect(ctx, *lambda.Docker.ContainerId)
 
 		// TODO: check error more precisely and handle correctly
 		if err != nil {
@@ -81,7 +81,7 @@ func (s service) Init() error {
 			}
 
 			if id != "" {
-				lambda.Docker.ContainerID = &id
+				lambda.Docker.ContainerId = &id
 				s.updateLambda(ctx, lambda)
 			}
 		}
@@ -95,13 +95,13 @@ func (s service) Init() error {
 		return lambdaInitErr
 	}
 
-	s.lambdas.ForEach(func(_ string, lambda model.LambdaM) {
-		if lambda.Docker.ContainerID == nil {
+	s.lambdas.ForEach(func(_ string, lambda api.Lambda) {
+		if lambda.Docker.ContainerId == nil {
 			return
 		}
 
 		lctx, cancel := context.WithCancel(context.Background())
-		s.inspect.Set(lambda.ID, cancel)
+		s.inspect.Set(lambda.Id, cancel)
 		go s.inspectRoutine(lctx, lambda)
 	})
 
@@ -113,8 +113,8 @@ func (s *service) Stop(ctx context.Context) {
 		stop()
 	})
 
-	s.lambdas.ForEach(func(_ string, lambda model.LambdaM) {
-		if lambda.Docker.ContainerID == nil {
+	s.lambdas.ForEach(func(_ string, lambda api.Lambda) {
+		if lambda.Docker.ContainerId == nil {
 			return
 		}
 
@@ -122,47 +122,35 @@ func (s *service) Stop(ctx context.Context) {
 	})
 }
 
-func (s *service) BootstrapRuntime(ctx context.Context, cRuntime *model.CreateRuntimeM) (*model.CreateRuntimeM, error) {
+func (s *service) BootstrapRuntime(ctx context.Context, cRuntime *api.CreateRuntime) (*api.Runtime, error) {
 	if succ := s.bootstrapping.AddUniq(cRuntime.Dockerfile); !succ {
 		return nil, fmt.Errorf("lambda with '%s' archive is already in progress", cRuntime.Dockerfile)
 	}
 	defer s.bootstrapping.Remove(cRuntime.Dockerfile)
 
-	cRuntime.ID = util.UUID()
+	id := util.UUID()
 
-	if err := BootstrapRuntime(ctx, cRuntime); err != nil {
+	if err := BootstrapRuntime(ctx, id, cRuntime); err != nil {
 		return nil, err
 	}
 
 	createdAt := time.Now().UnixMilli()
-	cRuntime.CreatedAt = createdAt
-	cRuntime.UpdatedAt = createdAt
 
-	if err := SetRuntime(ctx, &model.RuntimeM{
-		BaseObject: model.BaseObject{
-			ID:        cRuntime.ID,
-			Name:      cRuntime.Name,
-			CreatedAt: createdAt,
-			UpdatedAt: createdAt,
-		},
-	}); err != nil {
+	runtime := &api.Runtime{
+		Id:        id,
+		Name:      cRuntime.Name,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	}
+
+	if err := SetRuntime(ctx, runtime); err != nil {
 		return nil, err
 	}
 
-	return cRuntime, nil
+	return runtime, nil
 }
 
-func (s *service) BootstrapLambda(ctx context.Context, cLambda *model.CreateLambdaM) (*model.CreateLambdaM, error) {
-	existing, err := FindLambda(ctx, func(val *model.LambdaM) bool {
-		return val.Endpoint == cLambda.Endpoint
-	})
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		return nil, fmt.Errorf("endpoint already exists: %s", cLambda.Endpoint)
-	}
-
+func (s *service) BootstrapLambda(ctx context.Context, cLambda *api.CreateLambda) (*api.Lambda, error) {
 	if succ := s.bootstrapping.AddUniq(cLambda.Archive); !succ {
 		return nil, fmt.Errorf("lambda with '%s' archive is already being bootstrapped", cLambda.Archive)
 	}
@@ -172,40 +160,34 @@ func (s *service) BootstrapLambda(ctx context.Context, cLambda *model.CreateLamb
 		return nil, err
 	}
 
-	cLambda.ID = util.UUID()
+	id := util.UUID()
 
-	if err := BootstrapLambda(ctx, cLambda); err != nil {
+	if err := BootstrapLambda(ctx, id, cLambda); err != nil {
 		return nil, err
 	}
 
 	createdAt := time.Now().UnixMilli()
-	cLambda.CreatedAt = createdAt
-	cLambda.UpdatedAt = createdAt
 
-	lambda := model.LambdaM{
-		BaseLambdaM: model.BaseLambdaM{
-			BaseObject: model.BaseObject{
-				ID:        cLambda.ID,
-				Name:      cLambda.Name,
-				CreatedAt: createdAt,
-				UpdatedAt: createdAt,
-			},
-			Runtime:  cLambda.Runtime,
-			Endpoint: cLambda.Endpoint,
-		},
+	lambda := api.Lambda{
+		Id:         id,
+		Name:       cLambda.Name,
+		CreatedAt:  createdAt,
+		UpdatedAt:  createdAt,
+		Runtime:    cLambda.Runtime,
+		LambdaType: cLambda.LambdaType,
 	}
 
 	if err := SetLambda(ctx, &lambda); err != nil {
 		return nil, err
 	}
 
-	s.lambdas.Set(lambda.ID, lambda)
+	s.lambdas.Set(lambda.Id, lambda)
 
-	return cLambda, nil
+	return &lambda, nil
 }
 
-func (s service) start(ctx context.Context, lambda *model.LambdaM) (string, error) {
-	tar, err := TarLambda(ctx, lambda.ID, lambda.Runtime)
+func (s service) start(ctx context.Context, lambda *api.Lambda) (string, error) {
+	tar, err := TarLambda(ctx, lambda.Id, lambda.Runtime)
 	if err != nil {
 		return "", err
 	}
@@ -220,7 +202,7 @@ func (s service) start(ctx context.Context, lambda *model.LambdaM) (string, erro
 		return "", err
 	}
 
-	lambda.Docker.ContainerID = &containerID
+	lambda.Docker.ContainerId = &containerID
 
 	return containerID, s.dockerSvc.Start(ctx, lambda)
 }
@@ -245,7 +227,7 @@ func (s service) Start(ctx context.Context, id string) error {
 	}
 
 	lctx, cancel := context.WithCancel(context.Background())
-	s.inspect.Set(lambda.ID, cancel)
+	s.inspect.Set(lambda.Id, cancel)
 	go s.inspectRoutine(lctx, *lambda)
 
 	return nil
@@ -269,7 +251,7 @@ func (s service) Destroy(ctx context.Context, id string) error {
 		return err
 	}
 
-	lambda.Docker = model.DockerM{}
+	lambda.Docker = api.Docker{}
 
 	if err := s.updateLambda(ctx, *lambda); err != nil {
 		return err
@@ -278,9 +260,9 @@ func (s service) Destroy(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s service) updateLambda(ctx context.Context, lambda model.LambdaM) error {
+func (s service) updateLambda(ctx context.Context, lambda api.Lambda) error {
 	var updateErr error
-	s.lambdas.Update(lambda.ID, func(prev model.LambdaM) model.LambdaM {
+	s.lambdas.Update(lambda.Id, func(prev api.Lambda) api.Lambda {
 		if err := SetLambda(ctx, &lambda); err != nil {
 			updateErr = err
 			return prev
@@ -292,11 +274,11 @@ func (s service) updateLambda(ctx context.Context, lambda model.LambdaM) error {
 	return updateErr
 }
 
-func (s service) inspectRoutine(ctx context.Context, lambda model.LambdaM) {
-	id := *lambda.Docker.ContainerID
+func (s service) inspectRoutine(ctx context.Context, lambda api.Lambda) {
+	id := *lambda.Docker.ContainerId
 	for {
 		container, err := s.dockerSvc.Inspect(ctx, id)
-		actual, rErr := GetLambda(ctx, lambda.ID)
+		actual, rErr := GetLambda(ctx, lambda.Id)
 
 		if rErr == nil {
 			if err != nil {
@@ -316,7 +298,7 @@ func (s service) inspectRoutine(ctx context.Context, lambda model.LambdaM) {
 					logger.L.Error(
 						"Failed to update lambda",
 						zap.Error(err),
-						zap.String("id", lambda.ID),
+						zap.String("id", lambda.Id),
 					)
 				}
 			}
@@ -324,7 +306,7 @@ func (s service) inspectRoutine(ctx context.Context, lambda model.LambdaM) {
 			logger.L.Error(
 				"Failed to gather lambda",
 				zap.Error(err),
-				zap.String("id", lambda.ID),
+				zap.String("id", lambda.Id),
 			)
 		}
 

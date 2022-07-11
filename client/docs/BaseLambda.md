@@ -6,13 +6,13 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
 **Runtime** | **string** |  | 
-**Endpoint** | **string** |  | 
+**LambdaType** | **string** |  | 
 
 ## Methods
 
 ### NewBaseLambda
 
-`func NewBaseLambda(name string, runtime string, endpoint string, ) *BaseLambda`
+`func NewBaseLambda(name string, runtime string, lambdaType string, ) *BaseLambda`
 
 NewBaseLambda instantiates a new BaseLambda object
 This constructor will assign default values to properties that have it defined,
@@ -67,24 +67,24 @@ and a boolean to check if the value has been set.
 SetRuntime sets Runtime field to given value.
 
 
-### GetEndpoint
+### GetLambdaType
 
-`func (o *BaseLambda) GetEndpoint() string`
+`func (o *BaseLambda) GetLambdaType() string`
 
-GetEndpoint returns the Endpoint field if non-nil, zero value otherwise.
+GetLambdaType returns the LambdaType field if non-nil, zero value otherwise.
 
-### GetEndpointOk
+### GetLambdaTypeOk
 
-`func (o *BaseLambda) GetEndpointOk() (*string, bool)`
+`func (o *BaseLambda) GetLambdaTypeOk() (*string, bool)`
 
-GetEndpointOk returns a tuple with the Endpoint field if it's non-nil, zero value otherwise
+GetLambdaTypeOk returns a tuple with the LambdaType field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetEndpoint
+### SetLambdaType
 
-`func (o *BaseLambda) SetEndpoint(v string)`
+`func (o *BaseLambda) SetLambdaType(v string)`
 
-SetEndpoint sets Endpoint field to given value.
+SetLambdaType sets LambdaType field to given value.
 
 
 

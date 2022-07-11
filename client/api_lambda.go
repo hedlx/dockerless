@@ -19,10 +19,6 @@ import (
 	"strings"
 )
 
-// Linger please
-var (
-	_ context.Context
-)
 
 // LambdaApiService LambdaApi service
 type LambdaApiService service
@@ -149,7 +145,6 @@ type ApiDestroyLambdaRequest struct {
 	id string
 }
 
-
 func (r ApiDestroyLambdaRequest) Execute() (*TaskResponse, *http.Response, error) {
 	return r.ApiService.DestroyLambdaExecute(r)
 }
@@ -258,7 +253,6 @@ type ApiGetLambdaRequest struct {
 	id string
 }
 
-
 func (r ApiGetLambdaRequest) Execute() (*Lambda, *http.Response, error) {
 	return r.ApiService.GetLambdaExecute(r)
 }
@@ -366,7 +360,6 @@ type ApiListLambdasRequest struct {
 	ApiService *LambdaApiService
 }
 
-
 func (r ApiListLambdasRequest) Execute() ([]Lambda, *http.Response, error) {
 	return r.ApiService.ListLambdasExecute(r)
 }
@@ -471,7 +464,6 @@ type ApiStartLambdaRequest struct {
 	ApiService *LambdaApiService
 	id string
 }
-
 
 func (r ApiStartLambdaRequest) Execute() (*TaskResponse, *http.Response, error) {
 	return r.ApiService.StartLambdaExecute(r)

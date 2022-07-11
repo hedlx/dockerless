@@ -9,9 +9,9 @@ import (
 )
 
 type CreateLambdaM struct {
-	Name     string
-	Runtime  string
-	Endpoint string
+	Name       string
+	Runtime    string
+	LambdaType string
 }
 
 func CreateLambda(ctx context.Context, lambda CreateLambdaM, path string) (*api.Lambda, error) {
@@ -23,10 +23,10 @@ func CreateLambda(ctx context.Context, lambda CreateLambdaM, path string) (*api.
 	createResp, r, err := client.LambdaApi.
 		CreateLambda(ctx).
 		CreateLambda(api.CreateLambda{
-			Name:     lambda.Name,
-			Runtime:  lambda.Runtime,
-			Endpoint: lambda.Endpoint,
-			Archive:  uploadID,
+			Name:       lambda.Name,
+			Runtime:    lambda.Runtime,
+			LambdaType: lambda.LambdaType,
+			Archive:    uploadID,
 		}).
 		Execute()
 	if err != nil {

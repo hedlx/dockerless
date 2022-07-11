@@ -3,39 +3,11 @@ package model
 import (
 	"fmt"
 	"regexp"
+
+	api "github.com/hedlx/doless/client"
 )
 
-type BaseObject struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
-}
-
-type BaseLambdaM struct {
-	BaseObject
-	Runtime  string `json:"runtime"`
-	Endpoint string `json:"endpoint"`
-}
-
-type DockerM struct {
-	Image       *string `json:"image,omitempty"`
-	Container   *string `json:"container,omitempty"`
-	ContainerID *string `json:"container_id,omitempty"`
-	Status      string  `json:"status"`
-}
-
-type LambdaM struct {
-	BaseLambdaM
-	Docker DockerM `json:"docker"`
-}
-
-type CreateLambdaM struct {
-	BaseLambdaM
-	Archive string `json:"archive"`
-}
-
-func ValidateCreateLambdaM(lambda *CreateLambdaM) error {
+func ValidateCreateLambda(lambda *api.CreateLambda) error {
 	if lambda.Name == "" {
 		return fmt.Errorf("'name' is required")
 	}
@@ -44,16 +16,12 @@ func ValidateCreateLambdaM(lambda *CreateLambdaM) error {
 		return fmt.Errorf("'runtime' is required")
 	}
 
-	if lambda.Endpoint == "" {
-		return fmt.Errorf("'endpoint' is required")
+	if lambda.LambdaType == "" {
+		return fmt.Errorf("'lambda_type' is required")
 	}
 
-	if err := ValidateEndpoint(lambda.Endpoint); err != nil {
-		return err
-	}
-
-	if lambda.Archive == "" {
-		return fmt.Errorf("'archive' is required")
+	if lambda.LambdaType != "ENDPOINT" && lambda.LambdaType != "INTERNAL" {
+		return fmt.Errorf("invalid 'lambda_type' value: %s", lambda.LambdaType)
 	}
 
 	return nil
@@ -69,28 +37,7 @@ func ValidateEndpoint(path string) error {
 	return nil
 }
 
-type UpgradeLambdaM struct {
-	Archive string `json:"archive"`
-}
-
-func ValidateUpgradeLambdaM(lambda *UpgradeLambdaM) error {
-	if lambda.Archive == "" {
-		return fmt.Errorf("'archive' is required")
-	}
-
-	return nil
-}
-
-type RuntimeM struct {
-	BaseObject
-}
-
-type CreateRuntimeM struct {
-	RuntimeM
-	Dockerfile string `json:"dockerfile"`
-}
-
-func ValidateCreateRuntimeM(runtime *CreateRuntimeM) error {
+func ValidateCreateRuntime(runtime *api.CreateRuntime) error {
 	if runtime.Name == "" {
 		return fmt.Errorf("'name' is required")
 	}

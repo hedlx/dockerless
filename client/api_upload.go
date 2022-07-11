@@ -19,10 +19,6 @@ import (
 	"os"
 )
 
-// Linger please
-var (
-	_ context.Context
-)
 
 // UploadApiService UploadApi service
 type UploadApiService service

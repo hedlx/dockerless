@@ -14,7 +14,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	"github.com/hedlx/doless/manager/model"
+	api "github.com/hedlx/doless/client"
 	"github.com/hedlx/doless/manager/util"
 )
 
@@ -87,7 +87,7 @@ func UploadTmp(ctx context.Context, file io.Reader) (string, error) {
 	return id, err
 }
 
-func BootstrapLambda(ctx context.Context, lambda *model.CreateLambdaM) error {
+func BootstrapLambda(ctx context.Context, id string, lambda *api.CreateLambda) error {
 	archive, err := minioCli.GetObject(ctx, tmpBucket, lambda.Archive, minio.GetObjectOptions{})
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func BootstrapLambda(ctx context.Context, lambda *model.CreateLambdaM) error {
 			return nil
 		}
 
-		_, lerr := minioCli.FPutObject(ctx, lambdaBucket, lambda.ID+filepath.ToSlash(file)[len(dest):], file, minio.PutObjectOptions{})
+		_, lerr := minioCli.FPutObject(ctx, lambdaBucket, id+filepath.ToSlash(file)[len(dest):], file, minio.PutObjectOptions{})
 
 		return lerr
 	})
@@ -151,8 +151,12 @@ func BootstrapLambda(ctx context.Context, lambda *model.CreateLambdaM) error {
 	return nil
 }
 
-func BootstrapRuntime(ctx context.Context, runtime *model.CreateRuntimeM) error {
-	_, err := minioCli.CopyObject(ctx, minio.CopyDestOptions{Bucket: runtimeBucket, Object: runtime.ID, UserMetadata: map[string]string{"name": runtime.Name}}, minio.CopySrcOptions{Bucket: tmpBucket, Object: runtime.Dockerfile})
+func BootstrapRuntime(ctx context.Context, id string, runtime *api.CreateRuntime) error {
+	_, err := minioCli.CopyObject(ctx, minio.CopyDestOptions{
+		Bucket:       runtimeBucket,
+		Object:       id,
+		UserMetadata: map[string]string{"name": runtime.Name}},
+		minio.CopySrcOptions{Bucket: tmpBucket, Object: runtime.Dockerfile})
 	if err != nil {
 		return err
 	}

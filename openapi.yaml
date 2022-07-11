@@ -7,7 +7,7 @@ info:
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/hedlx/doless/1.0.0
-  - url: 'localhost:8080'
+  - url: 'localhost:8081'
 paths:
   /upload:
     post:
@@ -28,7 +28,7 @@ paths:
               required:
                 - file
       responses:
-        '200':
+        '201':
           description: 'File uploaded'
           content:
             application/json:
@@ -40,6 +40,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
   /runtime:
     get:
       summary: 'List runtimes'
@@ -74,7 +75,7 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateRuntime'
       responses:
-        '200':
+        '201':
           description: 'Created runtime'
           content:
             application/json:
@@ -112,6 +113,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
   /lambda:
     get:
       summary: 'List lambdas'
@@ -146,7 +148,7 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateLambda'
       responses:
-        '200':
+        '201':
           description: 'Created lambda'
           content:
             application/json:
@@ -236,7 +238,101 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-                
+
+  /endpoint:
+    get:
+      summary: 'List endpoints'
+      operationId: 'listEndpoints'
+      tags:
+        - endpoint
+      responses:
+        '200':
+          description: 'Endpoints list'
+          content:
+            application/json:
+             schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Endpoint'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 'Create endpoint'
+      operationId: 'createEndpoint'
+      tags:
+        - endpoint
+      requestBody:
+        description: 'Create endpoint body'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEndpoint'
+      responses:
+        '201':
+          description: 'Created endpoint'
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/Endpoint'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /endpoint/{id}:
+    get:
+      summary: 'Get endpoint'
+      operationId: 'getEndpoint'
+      tags:
+        - endpoint
+      parameters:
+        - name: id
+          in: path
+          description: 'endpoint id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Specific endpoint'
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/Endpoint'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: 'Delete endpoint'
+      operationId: 'deleteEndpoint'
+      tags:
+        - endpoint
+      parameters:
+        - name: id
+          in: path
+          description: 'endpoint id'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Endpoint is removed'
+        default:
+          description: 'Unexpected error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /task/{id}:
     get:
       summary: 'Get task status'
@@ -281,8 +377,10 @@ components:
       required:
         - id
         - name
-        - createdAt
-        - updatedAt
+        - created_at
+        - updated_at
+
+    # Runtime definition
     BaseRuntime:
       type: object
       properties:
@@ -304,6 +402,8 @@ components:
           type: string
       required:
         - dockerfile
+
+    # Lambda definition
     BaseLambda:
       type: object
       properties:
@@ -311,12 +411,13 @@ components:
           type: string
         runtime:
           type: string
-        endpoint:
+        lambda_type:
           type: string
+          enum: [ENDPOINT, INTERNAL]
       required:
         - name
         - runtime
-        - endpoint
+        - lambda_type
     Lambda:
       allOf:
         - $ref: '#/components/schemas/BaseObject'
@@ -349,6 +450,30 @@ components:
           type: string
       required:
         - status
+
+    # Endpoint definition
+    BaseEndpoint:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        lambda:
+          type: string
+      required:
+        - name
+        - path
+        - lambda
+    Endpoint:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - $ref: '#/components/schemas/BaseEndpoint'
+    CreateEndpoint:
+      allOf:
+        - $ref: '#/components/schemas/BaseEndpoint'
+
+    # Upload definition
     UploadResponse:
       type: object
       properties:
@@ -356,6 +481,8 @@ components:
           type: string
       required:
         - id
+
+    # Task definition
     TaskResponse:
       type: object
       properties:

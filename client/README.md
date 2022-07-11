@@ -78,6 +78,10 @@ All URIs are relative to *https://virtserver.swaggerhub.com/hedlx/doless/1.0.0*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*EndpointApi* | [**CreateEndpoint**](docs/EndpointApi.md#createendpoint) | **Post** /endpoint | Create endpoint
+*EndpointApi* | [**DeleteEndpoint**](docs/EndpointApi.md#deleteendpoint) | **Delete** /endpoint/{id} | Delete endpoint
+*EndpointApi* | [**GetEndpoint**](docs/EndpointApi.md#getendpoint) | **Get** /endpoint/{id} | Get endpoint
+*EndpointApi* | [**ListEndpoints**](docs/EndpointApi.md#listendpoints) | **Get** /endpoint | List endpoints
 *LambdaApi* | [**CreateLambda**](docs/LambdaApi.md#createlambda) | **Post** /lambda | Create lambda
 *LambdaApi* | [**DestroyLambda**](docs/LambdaApi.md#destroylambda) | **Post** /lambda/{id}/destroy | Stop lambda and remove docker container
 *LambdaApi* | [**GetLambda**](docs/LambdaApi.md#getlambda) | **Get** /lambda/{id} | Get lambda
@@ -92,12 +96,15 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [BaseEndpoint](docs/BaseEndpoint.md)
  - [BaseLambda](docs/BaseLambda.md)
  - [BaseObject](docs/BaseObject.md)
  - [BaseRuntime](docs/BaseRuntime.md)
+ - [CreateEndpoint](docs/CreateEndpoint.md)
  - [CreateLambda](docs/CreateLambda.md)
  - [CreateRuntime](docs/CreateRuntime.md)
  - [Docker](docs/Docker.md)
+ - [Endpoint](docs/Endpoint.md)
  - [Error](docs/Error.md)
  - [Lambda](docs/Lambda.md)
  - [Runtime](docs/Runtime.md)

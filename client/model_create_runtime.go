@@ -51,7 +51,7 @@ func (o *CreateRuntime) GetDockerfile() string {
 // GetDockerfileOk returns a tuple with the Dockerfile field value
 // and a boolean to check if the value has been set.
 func (o *CreateRuntime) GetDockerfileOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Dockerfile, true
@@ -75,7 +75,7 @@ func (o *CreateRuntime) GetName() string {
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *CreateRuntime) GetNameOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Name, true

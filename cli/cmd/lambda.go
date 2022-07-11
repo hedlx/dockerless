@@ -20,7 +20,7 @@ var lambdaCmd = &cobra.Command{
 var lambdaID string
 var lambdaName string
 var lambdaRuntime string
-var lambdaEndpoint string
+var lambdaType string
 
 var lambdaCreateCmd = &cobra.Command{
 	Use:   "create [path]",
@@ -28,9 +28,9 @@ var lambdaCreateCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		lambdaM := ops.CreateLambdaM{
-			Name:     lambdaName,
-			Runtime:  lambdaRuntime,
-			Endpoint: lambdaEndpoint,
+			Name:       lambdaName,
+			Runtime:    lambdaRuntime,
+			LambdaType: lambdaType,
 		}
 		lambda, err := ops.CreateLambda(cmd.Context(), lambdaM, args[0])
 		if err != nil {
@@ -79,9 +79,9 @@ var lambdaDeployCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		lambdaM := ops.CreateLambdaM{
-			Name:     lambdaName,
-			Runtime:  lambdaRuntime,
-			Endpoint: lambdaEndpoint,
+			Name:       lambdaName,
+			Runtime:    lambdaRuntime,
+			LambdaType: lambdaType,
 		}
 
 		lambda, err := ops.DeployLambda(cmd.Context(), lambdaM, args[0])
@@ -117,10 +117,9 @@ func init() {
 
 	lambdaCreateCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaCreateCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
-	lambdaCreateCmd.Flags().StringVarP(&lambdaEndpoint, "endpoint", "e", "", "endpoint")
+	lambdaCreateCmd.Flags().StringVarP(&lambdaType, "type", "t", "EDNPOINT", "type of lambda (ENDPOINT | INTERNAL)")
 	lambdaCreateCmd.MarkFlagRequired("name")
 	lambdaCreateCmd.MarkFlagRequired("runtime")
-	lambdaCreateCmd.MarkFlagRequired("endpoint")
 
 	lambdaStartCmd.Flags().StringVarP(&lambdaID, "id", "i", "", "id")
 	lambdaStartCmd.MarkFlagRequired("id")
@@ -130,8 +129,7 @@ func init() {
 
 	lambdaDeployCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaDeployCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
-	lambdaDeployCmd.Flags().StringVarP(&lambdaEndpoint, "endpoint", "e", "", "endpoint")
+	lambdaDeployCmd.Flags().StringVarP(&lambdaType, "type", "e", "ENDPOINT", "type of lambda (ENDPOINT | INTERNAL)")
 	lambdaDeployCmd.MarkFlagRequired("name")
 	lambdaDeployCmd.MarkFlagRequired("runtime")
-	lambdaDeployCmd.MarkFlagRequired("endpoint")
 }

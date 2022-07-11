@@ -1,4 +1,4 @@
-# BaseObject
+# Endpoint
 
 ## Properties
 
@@ -8,104 +8,146 @@ Name | Type | Description | Notes
 **Name** | **string** |  | 
 **CreatedAt** | **int64** |  | 
 **UpdatedAt** | **int64** |  | 
+**Path** | **string** |  | 
+**Lambda** | **string** |  | 
 
 ## Methods
 
-### NewBaseObject
+### NewEndpoint
 
-`func NewBaseObject(id string, name string, createdAt int64, updatedAt int64, ) *BaseObject`
+`func NewEndpoint(id string, name string, createdAt int64, updatedAt int64, path string, lambda string, ) *Endpoint`
 
-NewBaseObject instantiates a new BaseObject object
+NewEndpoint instantiates a new Endpoint object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewBaseObjectWithDefaults
+### NewEndpointWithDefaults
 
-`func NewBaseObjectWithDefaults() *BaseObject`
+`func NewEndpointWithDefaults() *Endpoint`
 
-NewBaseObjectWithDefaults instantiates a new BaseObject object
+NewEndpointWithDefaults instantiates a new Endpoint object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetId
 
-`func (o *BaseObject) GetId() string`
+`func (o *Endpoint) GetId() string`
 
 GetId returns the Id field if non-nil, zero value otherwise.
 
 ### GetIdOk
 
-`func (o *BaseObject) GetIdOk() (*string, bool)`
+`func (o *Endpoint) GetIdOk() (*string, bool)`
 
 GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetId
 
-`func (o *BaseObject) SetId(v string)`
+`func (o *Endpoint) SetId(v string)`
 
 SetId sets Id field to given value.
 
 
 ### GetName
 
-`func (o *BaseObject) GetName() string`
+`func (o *Endpoint) GetName() string`
 
 GetName returns the Name field if non-nil, zero value otherwise.
 
 ### GetNameOk
 
-`func (o *BaseObject) GetNameOk() (*string, bool)`
+`func (o *Endpoint) GetNameOk() (*string, bool)`
 
 GetNameOk returns a tuple with the Name field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetName
 
-`func (o *BaseObject) SetName(v string)`
+`func (o *Endpoint) SetName(v string)`
 
 SetName sets Name field to given value.
 
 
 ### GetCreatedAt
 
-`func (o *BaseObject) GetCreatedAt() int64`
+`func (o *Endpoint) GetCreatedAt() int64`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *BaseObject) GetCreatedAtOk() (*int64, bool)`
+`func (o *Endpoint) GetCreatedAtOk() (*int64, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *BaseObject) SetCreatedAt(v int64)`
+`func (o *Endpoint) SetCreatedAt(v int64)`
 
 SetCreatedAt sets CreatedAt field to given value.
 
 
 ### GetUpdatedAt
 
-`func (o *BaseObject) GetUpdatedAt() int64`
+`func (o *Endpoint) GetUpdatedAt() int64`
 
 GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
 
 ### GetUpdatedAtOk
 
-`func (o *BaseObject) GetUpdatedAtOk() (*int64, bool)`
+`func (o *Endpoint) GetUpdatedAtOk() (*int64, bool)`
 
 GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetUpdatedAt
 
-`func (o *BaseObject) SetUpdatedAt(v int64)`
+`func (o *Endpoint) SetUpdatedAt(v int64)`
 
 SetUpdatedAt sets UpdatedAt field to given value.
+
+
+### GetPath
+
+`func (o *Endpoint) GetPath() string`
+
+GetPath returns the Path field if non-nil, zero value otherwise.
+
+### GetPathOk
+
+`func (o *Endpoint) GetPathOk() (*string, bool)`
+
+GetPathOk returns a tuple with the Path field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetPath
+
+`func (o *Endpoint) SetPath(v string)`
+
+SetPath sets Path field to given value.
+
+
+### GetLambda
+
+`func (o *Endpoint) GetLambda() string`
+
+GetLambda returns the Lambda field if non-nil, zero value otherwise.
+
+### GetLambdaOk
+
+`func (o *Endpoint) GetLambdaOk() (*string, bool)`
+
+GetLambdaOk returns a tuple with the Lambda field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetLambda
+
+`func (o *Endpoint) SetLambda(v string)`
+
+SetLambda sets Lambda field to given value.
 
 
 

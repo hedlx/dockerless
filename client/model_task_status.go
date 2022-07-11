@@ -54,7 +54,7 @@ func (o *TaskStatus) GetStatus() string {
 // GetStatusOk returns a tuple with the Status field value
 // and a boolean to check if the value has been set.
 func (o *TaskStatus) GetStatusOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Status, true
@@ -78,7 +78,7 @@ func (o *TaskStatus) GetStartedAt() int64 {
 // GetStartedAtOk returns a tuple with the StartedAt field value
 // and a boolean to check if the value has been set.
 func (o *TaskStatus) GetStartedAtOk() (*int64, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.StartedAt, true

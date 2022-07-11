@@ -7,16 +7,16 @@ Name | Type | Description | Notes
 **Docker** | [**Docker**](Docker.md) |  | 
 **Id** | **string** |  | 
 **Name** | **string** |  | 
-**CreatedAt** | Pointer to **int64** |  | [optional] 
-**UpdatedAt** | Pointer to **int64** |  | [optional] 
+**CreatedAt** | **int64** |  | 
+**UpdatedAt** | **int64** |  | 
 **Runtime** | **string** |  | 
-**Endpoint** | **string** |  | 
+**LambdaType** | **string** |  | 
 
 ## Methods
 
 ### NewLambda
 
-`func NewLambda(docker Docker, id string, name string, runtime string, endpoint string, ) *Lambda`
+`func NewLambda(docker Docker, id string, name string, createdAt int64, updatedAt int64, runtime string, lambdaType string, ) *Lambda`
 
 NewLambda instantiates a new Lambda object
 This constructor will assign default values to properties that have it defined,
@@ -110,11 +110,6 @@ and a boolean to check if the value has been set.
 
 SetCreatedAt sets CreatedAt field to given value.
 
-### HasCreatedAt
-
-`func (o *Lambda) HasCreatedAt() bool`
-
-HasCreatedAt returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 
@@ -135,11 +130,6 @@ and a boolean to check if the value has been set.
 
 SetUpdatedAt sets UpdatedAt field to given value.
 
-### HasUpdatedAt
-
-`func (o *Lambda) HasUpdatedAt() bool`
-
-HasUpdatedAt returns a boolean if a field has been set.
 
 ### GetRuntime
 
@@ -161,24 +151,24 @@ and a boolean to check if the value has been set.
 SetRuntime sets Runtime field to given value.
 
 
-### GetEndpoint
+### GetLambdaType
 
-`func (o *Lambda) GetEndpoint() string`
+`func (o *Lambda) GetLambdaType() string`
 
-GetEndpoint returns the Endpoint field if non-nil, zero value otherwise.
+GetLambdaType returns the LambdaType field if non-nil, zero value otherwise.
 
-### GetEndpointOk
+### GetLambdaTypeOk
 
-`func (o *Lambda) GetEndpointOk() (*string, bool)`
+`func (o *Lambda) GetLambdaTypeOk() (*string, bool)`
 
-GetEndpointOk returns a tuple with the Endpoint field if it's non-nil, zero value otherwise
+GetLambdaTypeOk returns a tuple with the LambdaType field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetEndpoint
+### SetLambdaType
 
-`func (o *Lambda) SetEndpoint(v string)`
+`func (o *Lambda) SetLambdaType(v string)`
 
-SetEndpoint sets Endpoint field to given value.
+SetLambdaType sets LambdaType field to given value.
 
 
 

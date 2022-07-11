@@ -12,9 +12,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	api "github.com/hedlx/doless/client"
 	lo "github.com/samber/lo"
-
-	"github.com/hedlx/doless/manager/model"
 )
 
 type service struct {
@@ -23,13 +22,13 @@ type service struct {
 }
 
 type DockerService interface {
-	Create(ctx context.Context, lambda *model.LambdaM, tar io.Reader) (string, error)
-	CreateContainer(ctx context.Context, lambda *model.LambdaM) (string, error)
-	Start(ctx context.Context, lambda *model.LambdaM) error
-	Stop(ctx context.Context, lambda *model.LambdaM) error
+	Create(ctx context.Context, lambda *api.Lambda, tar io.Reader) (string, error)
+	CreateContainer(ctx context.Context, lambda *api.Lambda) (string, error)
+	Start(ctx context.Context, lambda *api.Lambda) error
+	Stop(ctx context.Context, lambda *api.Lambda) error
 	ListContainers(ctx context.Context) ([]types.Container, error)
 	Inspect(ctx context.Context, id string) (types.ContainerJSON, error)
-	Remove(ctx context.Context, lambda *model.LambdaM) error
+	Remove(ctx context.Context, lambda *api.Lambda) error
 }
 
 func NewDockerService(id string) (DockerService, error) {
@@ -52,7 +51,7 @@ func (s service) Inspect(ctx context.Context, id string) (types.ContainerJSON, e
 	return s.client.ContainerInspect(ctx, id)
 }
 
-func (s service) Create(ctx context.Context, lambda *model.LambdaM, tar io.Reader) (string, error) {
+func (s service) Create(ctx context.Context, lambda *api.Lambda, tar io.Reader) (string, error) {
 	if lambda.Docker.Container == nil || lambda.Docker.Image == nil {
 		return "", fmt.Errorf("lambda model is not complete")
 	}
@@ -106,7 +105,7 @@ func (s service) Create(ctx context.Context, lambda *model.LambdaM, tar io.Reade
 	return s.CreateContainer(ctx, lambda)
 }
 
-func (s service) CreateContainer(ctx context.Context, lambda *model.LambdaM) (string, error) {
+func (s service) CreateContainer(ctx context.Context, lambda *api.Lambda) (string, error) {
 	container, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image:  *lambda.Docker.Image,
 		Labels: map[string]string{"doless": s.id},
@@ -119,12 +118,12 @@ func (s service) CreateContainer(ctx context.Context, lambda *model.LambdaM) (st
 	return container.ID, nil
 }
 
-func (s service) Start(ctx context.Context, lambda *model.LambdaM) error {
-	if lambda.Docker.ContainerID == nil {
+func (s service) Start(ctx context.Context, lambda *api.Lambda) error {
+	if lambda.Docker.ContainerId == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}
 
-	info, err := s.client.ContainerInspect(ctx, *lambda.Docker.ContainerID)
+	info, err := s.client.ContainerInspect(ctx, *lambda.Docker.ContainerId)
 	if err != nil {
 		return err
 	}
@@ -133,19 +132,19 @@ func (s service) Start(ctx context.Context, lambda *model.LambdaM) error {
 		return nil
 	}
 
-	if err := s.client.ContainerStart(ctx, *lambda.Docker.ContainerID, types.ContainerStartOptions{}); err != nil {
+	if err := s.client.ContainerStart(ctx, *lambda.Docker.ContainerId, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s service) Stop(ctx context.Context, lambda *model.LambdaM) error {
-	if lambda.Docker.ContainerID == nil {
+func (s service) Stop(ctx context.Context, lambda *api.Lambda) error {
+	if lambda.Docker.ContainerId == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}
 
-	info, err := s.client.ContainerInspect(ctx, *lambda.Docker.ContainerID)
+	info, err := s.client.ContainerInspect(ctx, *lambda.Docker.ContainerId)
 	if err != nil {
 		return err
 	}
@@ -154,14 +153,14 @@ func (s service) Stop(ctx context.Context, lambda *model.LambdaM) error {
 		return nil
 	}
 
-	if err := s.client.ContainerStop(ctx, *lambda.Docker.ContainerID, nil); err != nil {
+	if err := s.client.ContainerStop(ctx, *lambda.Docker.ContainerId, nil); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s service) Remove(ctx context.Context, lambda *model.LambdaM) error {
+func (s service) Remove(ctx context.Context, lambda *api.Lambda) error {
 	if lambda.Docker.Container == nil || lambda.Docker.Image == nil {
 		return fmt.Errorf("lambda model is not complete")
 	}
@@ -170,7 +169,7 @@ func (s service) Remove(ctx context.Context, lambda *model.LambdaM) error {
 		return err
 	}
 
-	if err := s.client.ContainerRemove(ctx, *lambda.Docker.ContainerID, types.ContainerRemoveOptions{}); err != nil {
+	if err := s.client.ContainerRemove(ctx, *lambda.Docker.ContainerId, types.ContainerRemoveOptions{}); err != nil {
 		return err
 	}
 

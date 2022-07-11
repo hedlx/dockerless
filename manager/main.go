@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	api "github.com/hedlx/doless/client"
 	"github.com/hedlx/doless/manager/lambda"
 	"github.com/hedlx/doless/manager/logger"
 	"github.com/hedlx/doless/manager/model"
@@ -100,20 +101,20 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	})
 
 	r.POST("/lambda", func(c *gin.Context) {
-		lambda := &model.CreateLambdaM{}
-		err := c.ShouldBind(lambda)
+		cLambda := &api.CreateLambda{}
+		err := c.ShouldBind(cLambda)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		err = model.ValidateCreateLambdaM(lambda)
+		err = model.ValidateCreateLambda(cLambda)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		lambda, err = lSvc.BootstrapLambda(c, lambda)
+		lambda, err := lSvc.BootstrapLambda(c, cLambda)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -183,20 +184,20 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 	})
 
 	r.POST("/runtime", func(c *gin.Context) {
-		runtime := &model.CreateRuntimeM{}
-		err := c.ShouldBind(runtime)
+		cRuntime := &api.CreateRuntime{}
+		err := c.ShouldBind(cRuntime)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		err = model.ValidateCreateRuntimeM(runtime)
+		err = model.ValidateCreateRuntime(cRuntime)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		runtime, err = lSvc.BootstrapRuntime(c, runtime)
+		runtime, err := lSvc.BootstrapRuntime(c, cRuntime)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

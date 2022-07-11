@@ -19,18 +19,18 @@ type CreateLambda struct {
 	Archive string `json:"archive"`
 	Name string `json:"name"`
 	Runtime string `json:"runtime"`
-	Endpoint string `json:"endpoint"`
+	LambdaType string `json:"lambda_type"`
 }
 
 // NewCreateLambda instantiates a new CreateLambda object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCreateLambda(archive string, name string, runtime string, endpoint string) *CreateLambda {
+func NewCreateLambda(archive string, name string, runtime string, lambdaType string) *CreateLambda {
 	this := CreateLambda{}
 	this.Name = name
 	this.Runtime = runtime
-	this.Endpoint = endpoint
+	this.LambdaType = lambdaType
 	return &this
 }
 
@@ -55,7 +55,7 @@ func (o *CreateLambda) GetArchive() string {
 // GetArchiveOk returns a tuple with the Archive field value
 // and a boolean to check if the value has been set.
 func (o *CreateLambda) GetArchiveOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Archive, true
@@ -79,7 +79,7 @@ func (o *CreateLambda) GetName() string {
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *CreateLambda) GetNameOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Name, true
@@ -103,7 +103,7 @@ func (o *CreateLambda) GetRuntime() string {
 // GetRuntimeOk returns a tuple with the Runtime field value
 // and a boolean to check if the value has been set.
 func (o *CreateLambda) GetRuntimeOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Runtime, true
@@ -114,28 +114,28 @@ func (o *CreateLambda) SetRuntime(v string) {
 	o.Runtime = v
 }
 
-// GetEndpoint returns the Endpoint field value
-func (o *CreateLambda) GetEndpoint() string {
+// GetLambdaType returns the LambdaType field value
+func (o *CreateLambda) GetLambdaType() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Endpoint
+	return o.LambdaType
 }
 
-// GetEndpointOk returns a tuple with the Endpoint field value
+// GetLambdaTypeOk returns a tuple with the LambdaType field value
 // and a boolean to check if the value has been set.
-func (o *CreateLambda) GetEndpointOk() (*string, bool) {
-	if o == nil  {
+func (o *CreateLambda) GetLambdaTypeOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return &o.Endpoint, true
+	return &o.LambdaType, true
 }
 
-// SetEndpoint sets field value
-func (o *CreateLambda) SetEndpoint(v string) {
-	o.Endpoint = v
+// SetLambdaType sets field value
+func (o *CreateLambda) SetLambdaType(v string) {
+	o.LambdaType = v
 }
 
 func (o CreateLambda) MarshalJSON() ([]byte, error) {
@@ -150,7 +150,7 @@ func (o CreateLambda) MarshalJSON() ([]byte, error) {
 		toSerialize["runtime"] = o.Runtime
 	}
 	if true {
-		toSerialize["endpoint"] = o.Endpoint
+		toSerialize["lambda_type"] = o.LambdaType
 	}
 	return json.Marshal(toSerialize)
 }

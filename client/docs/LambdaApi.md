@@ -31,7 +31,7 @@ import (
 )
 
 func main() {
-    createLambda := *openapiclient.NewCreateLambda("Archive_example", "Name_example", "Runtime_example", "Endpoint_example") // CreateLambda | Create lambda body
+    createLambda := *openapiclient.NewCreateLambda("Archive_example", "Name_example", "Runtime_example", "LambdaType_example") // CreateLambda | Create lambda body
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)

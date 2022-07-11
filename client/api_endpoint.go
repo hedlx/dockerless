@@ -20,60 +20,60 @@ import (
 )
 
 
-// RuntimeApiService RuntimeApi service
-type RuntimeApiService service
+// EndpointApiService EndpointApi service
+type EndpointApiService service
 
-type ApiCreateRuntimeRequest struct {
+type ApiCreateEndpointRequest struct {
 	ctx context.Context
-	ApiService *RuntimeApiService
-	createRuntime *CreateRuntime
+	ApiService *EndpointApiService
+	createEndpoint *CreateEndpoint
 }
 
-// Create runtime body
-func (r ApiCreateRuntimeRequest) CreateRuntime(createRuntime CreateRuntime) ApiCreateRuntimeRequest {
-	r.createRuntime = &createRuntime
+// Create endpoint body
+func (r ApiCreateEndpointRequest) CreateEndpoint(createEndpoint CreateEndpoint) ApiCreateEndpointRequest {
+	r.createEndpoint = &createEndpoint
 	return r
 }
 
-func (r ApiCreateRuntimeRequest) Execute() (*Runtime, *http.Response, error) {
-	return r.ApiService.CreateRuntimeExecute(r)
+func (r ApiCreateEndpointRequest) Execute() (*Endpoint, *http.Response, error) {
+	return r.ApiService.CreateEndpointExecute(r)
 }
 
 /*
-CreateRuntime Create runtime
+CreateEndpoint Create endpoint
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiCreateRuntimeRequest
+ @return ApiCreateEndpointRequest
 */
-func (a *RuntimeApiService) CreateRuntime(ctx context.Context) ApiCreateRuntimeRequest {
-	return ApiCreateRuntimeRequest{
+func (a *EndpointApiService) CreateEndpoint(ctx context.Context) ApiCreateEndpointRequest {
+	return ApiCreateEndpointRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//  @return Runtime
-func (a *RuntimeApiService) CreateRuntimeExecute(r ApiCreateRuntimeRequest) (*Runtime, *http.Response, error) {
+//  @return Endpoint
+func (a *EndpointApiService) CreateEndpointExecute(r ApiCreateEndpointRequest) (*Endpoint, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *Runtime
+		localVarReturnValue  *Endpoint
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "RuntimeApiService.CreateRuntime")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "EndpointApiService.CreateEndpoint")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/runtime"
+	localVarPath := localBasePath + "/endpoint"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.createRuntime == nil {
-		return localVarReturnValue, nil, reportError("createRuntime is required and must be specified")
+	if r.createEndpoint == nil {
+		return localVarReturnValue, nil, reportError("createEndpoint is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -94,7 +94,7 @@ func (a *RuntimeApiService) CreateRuntimeExecute(r ApiCreateRuntimeRequest) (*Ru
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.createRuntime
+	localVarPostBody = r.createEndpoint
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -139,25 +139,25 @@ func (a *RuntimeApiService) CreateRuntimeExecute(r ApiCreateRuntimeRequest) (*Ru
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiGetRuntimeRequest struct {
+type ApiDeleteEndpointRequest struct {
 	ctx context.Context
-	ApiService *RuntimeApiService
+	ApiService *EndpointApiService
 	id string
 }
 
-func (r ApiGetRuntimeRequest) Execute() (*Runtime, *http.Response, error) {
-	return r.ApiService.GetRuntimeExecute(r)
+func (r ApiDeleteEndpointRequest) Execute() (*http.Response, error) {
+	return r.ApiService.DeleteEndpointExecute(r)
 }
 
 /*
-GetRuntime Get runtime
+DeleteEndpoint Delete endpoint
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id Runtime id
- @return ApiGetRuntimeRequest
+ @param id endpoint id
+ @return ApiDeleteEndpointRequest
 */
-func (a *RuntimeApiService) GetRuntime(ctx context.Context, id string) ApiGetRuntimeRequest {
-	return ApiGetRuntimeRequest{
+func (a *EndpointApiService) DeleteEndpoint(ctx context.Context, id string) ApiDeleteEndpointRequest {
+	return ApiDeleteEndpointRequest{
 		ApiService: a,
 		ctx: ctx,
 		id: id,
@@ -165,21 +165,118 @@ func (a *RuntimeApiService) GetRuntime(ctx context.Context, id string) ApiGetRun
 }
 
 // Execute executes the request
-//  @return Runtime
-func (a *RuntimeApiService) GetRuntimeExecute(r ApiGetRuntimeRequest) (*Runtime, *http.Response, error) {
+func (a *EndpointApiService) DeleteEndpointExecute(r ApiDeleteEndpointRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "EndpointApiService.DeleteEndpoint")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/endpoint/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterToString(r.id, "")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = ioutil.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ApiGetEndpointRequest struct {
+	ctx context.Context
+	ApiService *EndpointApiService
+	id string
+}
+
+func (r ApiGetEndpointRequest) Execute() (*Endpoint, *http.Response, error) {
+	return r.ApiService.GetEndpointExecute(r)
+}
+
+/*
+GetEndpoint Get endpoint
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id endpoint id
+ @return ApiGetEndpointRequest
+*/
+func (a *EndpointApiService) GetEndpoint(ctx context.Context, id string) ApiGetEndpointRequest {
+	return ApiGetEndpointRequest{
+		ApiService: a,
+		ctx: ctx,
+		id: id,
+	}
+}
+
+// Execute executes the request
+//  @return Endpoint
+func (a *EndpointApiService) GetEndpointExecute(r ApiGetEndpointRequest) (*Endpoint, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *Runtime
+		localVarReturnValue  *Endpoint
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "RuntimeApiService.GetRuntime")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "EndpointApiService.GetEndpoint")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/runtime/{id}"
+	localVarPath := localBasePath + "/endpoint/{id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterToString(r.id, "")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -247,44 +344,44 @@ func (a *RuntimeApiService) GetRuntimeExecute(r ApiGetRuntimeRequest) (*Runtime,
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiListRuntimesRequest struct {
+type ApiListEndpointsRequest struct {
 	ctx context.Context
-	ApiService *RuntimeApiService
+	ApiService *EndpointApiService
 }
 
-func (r ApiListRuntimesRequest) Execute() ([]Runtime, *http.Response, error) {
-	return r.ApiService.ListRuntimesExecute(r)
+func (r ApiListEndpointsRequest) Execute() ([]Endpoint, *http.Response, error) {
+	return r.ApiService.ListEndpointsExecute(r)
 }
 
 /*
-ListRuntimes List runtimes
+ListEndpoints List endpoints
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiListRuntimesRequest
+ @return ApiListEndpointsRequest
 */
-func (a *RuntimeApiService) ListRuntimes(ctx context.Context) ApiListRuntimesRequest {
-	return ApiListRuntimesRequest{
+func (a *EndpointApiService) ListEndpoints(ctx context.Context) ApiListEndpointsRequest {
+	return ApiListEndpointsRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//  @return []Runtime
-func (a *RuntimeApiService) ListRuntimesExecute(r ApiListRuntimesRequest) ([]Runtime, *http.Response, error) {
+//  @return []Endpoint
+func (a *EndpointApiService) ListEndpointsExecute(r ApiListEndpointsRequest) ([]Endpoint, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  []Runtime
+		localVarReturnValue  []Endpoint
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "RuntimeApiService.ListRuntimes")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "EndpointApiService.ListEndpoints")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/runtime"
+	localVarPath := localBasePath + "/endpoint"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

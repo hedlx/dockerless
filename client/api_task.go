@@ -19,10 +19,6 @@ import (
 	"strings"
 )
 
-// Linger please
-var (
-	_ context.Context
-)
 
 // TaskApiService TaskApi service
 type TaskApiService service
@@ -32,7 +28,6 @@ type ApiGetTaskRequest struct {
 	ApiService *TaskApiService
 	id string
 }
-
 
 func (r ApiGetTaskRequest) Execute() (*TaskStatus, *http.Response, error) {
 	return r.ApiService.GetTaskExecute(r)

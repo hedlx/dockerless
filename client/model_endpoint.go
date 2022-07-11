@@ -14,66 +14,41 @@ import (
 	"encoding/json"
 )
 
-// Lambda struct for Lambda
-type Lambda struct {
-	Docker Docker `json:"docker"`
+// Endpoint struct for Endpoint
+type Endpoint struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
 	CreatedAt int64 `json:"created_at"`
 	UpdatedAt int64 `json:"updated_at"`
-	Runtime string `json:"runtime"`
-	LambdaType string `json:"lambda_type"`
+	Path string `json:"path"`
+	Lambda string `json:"lambda"`
 }
 
-// NewLambda instantiates a new Lambda object
+// NewEndpoint instantiates a new Endpoint object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewLambda(docker Docker, id string, name string, createdAt int64, updatedAt int64, runtime string, lambdaType string) *Lambda {
-	this := Lambda{}
+func NewEndpoint(id string, name string, createdAt int64, updatedAt int64, path string, lambda string) *Endpoint {
+	this := Endpoint{}
 	this.Id = id
 	this.Name = name
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
-	this.Runtime = runtime
-	this.LambdaType = lambdaType
+	this.Path = path
+	this.Lambda = lambda
 	return &this
 }
 
-// NewLambdaWithDefaults instantiates a new Lambda object
+// NewEndpointWithDefaults instantiates a new Endpoint object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewLambdaWithDefaults() *Lambda {
-	this := Lambda{}
+func NewEndpointWithDefaults() *Endpoint {
+	this := Endpoint{}
 	return &this
-}
-
-// GetDocker returns the Docker field value
-func (o *Lambda) GetDocker() Docker {
-	if o == nil {
-		var ret Docker
-		return ret
-	}
-
-	return o.Docker
-}
-
-// GetDockerOk returns a tuple with the Docker field value
-// and a boolean to check if the value has been set.
-func (o *Lambda) GetDockerOk() (*Docker, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Docker, true
-}
-
-// SetDocker sets field value
-func (o *Lambda) SetDocker(v Docker) {
-	o.Docker = v
 }
 
 // GetId returns the Id field value
-func (o *Lambda) GetId() string {
+func (o *Endpoint) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -84,7 +59,7 @@ func (o *Lambda) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetIdOk() (*string, bool) {
+func (o *Endpoint) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -92,12 +67,12 @@ func (o *Lambda) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *Lambda) SetId(v string) {
+func (o *Endpoint) SetId(v string) {
 	o.Id = v
 }
 
 // GetName returns the Name field value
-func (o *Lambda) GetName() string {
+func (o *Endpoint) GetName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -108,7 +83,7 @@ func (o *Lambda) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetNameOk() (*string, bool) {
+func (o *Endpoint) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -116,12 +91,12 @@ func (o *Lambda) GetNameOk() (*string, bool) {
 }
 
 // SetName sets field value
-func (o *Lambda) SetName(v string) {
+func (o *Endpoint) SetName(v string) {
 	o.Name = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
-func (o *Lambda) GetCreatedAt() int64 {
+func (o *Endpoint) GetCreatedAt() int64 {
 	if o == nil {
 		var ret int64
 		return ret
@@ -132,7 +107,7 @@ func (o *Lambda) GetCreatedAt() int64 {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetCreatedAtOk() (*int64, bool) {
+func (o *Endpoint) GetCreatedAtOk() (*int64, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -140,12 +115,12 @@ func (o *Lambda) GetCreatedAtOk() (*int64, bool) {
 }
 
 // SetCreatedAt sets field value
-func (o *Lambda) SetCreatedAt(v int64) {
+func (o *Endpoint) SetCreatedAt(v int64) {
 	o.CreatedAt = v
 }
 
 // GetUpdatedAt returns the UpdatedAt field value
-func (o *Lambda) GetUpdatedAt() int64 {
+func (o *Endpoint) GetUpdatedAt() int64 {
 	if o == nil {
 		var ret int64
 		return ret
@@ -156,7 +131,7 @@ func (o *Lambda) GetUpdatedAt() int64 {
 
 // GetUpdatedAtOk returns a tuple with the UpdatedAt field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetUpdatedAtOk() (*int64, bool) {
+func (o *Endpoint) GetUpdatedAtOk() (*int64, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -164,63 +139,60 @@ func (o *Lambda) GetUpdatedAtOk() (*int64, bool) {
 }
 
 // SetUpdatedAt sets field value
-func (o *Lambda) SetUpdatedAt(v int64) {
+func (o *Endpoint) SetUpdatedAt(v int64) {
 	o.UpdatedAt = v
 }
 
-// GetRuntime returns the Runtime field value
-func (o *Lambda) GetRuntime() string {
+// GetPath returns the Path field value
+func (o *Endpoint) GetPath() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Runtime
+	return o.Path
 }
 
-// GetRuntimeOk returns a tuple with the Runtime field value
+// GetPathOk returns a tuple with the Path field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetRuntimeOk() (*string, bool) {
+func (o *Endpoint) GetPathOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Runtime, true
+	return &o.Path, true
 }
 
-// SetRuntime sets field value
-func (o *Lambda) SetRuntime(v string) {
-	o.Runtime = v
+// SetPath sets field value
+func (o *Endpoint) SetPath(v string) {
+	o.Path = v
 }
 
-// GetLambdaType returns the LambdaType field value
-func (o *Lambda) GetLambdaType() string {
+// GetLambda returns the Lambda field value
+func (o *Endpoint) GetLambda() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.LambdaType
+	return o.Lambda
 }
 
-// GetLambdaTypeOk returns a tuple with the LambdaType field value
+// GetLambdaOk returns a tuple with the Lambda field value
 // and a boolean to check if the value has been set.
-func (o *Lambda) GetLambdaTypeOk() (*string, bool) {
+func (o *Endpoint) GetLambdaOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.LambdaType, true
+	return &o.Lambda, true
 }
 
-// SetLambdaType sets field value
-func (o *Lambda) SetLambdaType(v string) {
-	o.LambdaType = v
+// SetLambda sets field value
+func (o *Endpoint) SetLambda(v string) {
+	o.Lambda = v
 }
 
-func (o Lambda) MarshalJSON() ([]byte, error) {
+func (o Endpoint) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if true {
-		toSerialize["docker"] = o.Docker
-	}
 	if true {
 		toSerialize["id"] = o.Id
 	}
@@ -234,46 +206,46 @@ func (o Lambda) MarshalJSON() ([]byte, error) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
 	if true {
-		toSerialize["runtime"] = o.Runtime
+		toSerialize["path"] = o.Path
 	}
 	if true {
-		toSerialize["lambda_type"] = o.LambdaType
+		toSerialize["lambda"] = o.Lambda
 	}
 	return json.Marshal(toSerialize)
 }
 
-type NullableLambda struct {
-	value *Lambda
+type NullableEndpoint struct {
+	value *Endpoint
 	isSet bool
 }
 
-func (v NullableLambda) Get() *Lambda {
+func (v NullableEndpoint) Get() *Endpoint {
 	return v.value
 }
 
-func (v *NullableLambda) Set(val *Lambda) {
+func (v *NullableEndpoint) Set(val *Endpoint) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableLambda) IsSet() bool {
+func (v NullableEndpoint) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableLambda) Unset() {
+func (v *NullableEndpoint) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableLambda(val *Lambda) *NullableLambda {
-	return &NullableLambda{value: val, isSet: true}
+func NewNullableEndpoint(val *Endpoint) *NullableEndpoint {
+	return &NullableEndpoint{value: val, isSet: true}
 }
 
-func (v NullableLambda) MarshalJSON() ([]byte, error) {
+func (v NullableEndpoint) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableLambda) UnmarshalJSON(src []byte) error {
+func (v *NullableEndpoint) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

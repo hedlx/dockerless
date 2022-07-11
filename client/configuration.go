@@ -109,7 +109,7 @@ func NewConfiguration() *Configuration {
 				Description: "SwaggerHub API Auto Mocking",
 			},
 			{
-				URL: "localhost:8080",
+				URL: "localhost:8081",
 				Description: "No description provided",
 			},
 		},
