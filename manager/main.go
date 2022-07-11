@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	api "github.com/hedlx/doless/client"
+	"github.com/hedlx/doless/manager/endpoint"
 	"github.com/hedlx/doless/manager/lambda"
 	"github.com/hedlx/doless/manager/logger"
 	"github.com/hedlx/doless/manager/model"
@@ -19,18 +20,34 @@ import (
 	"github.com/hedlx/doless/manager/util"
 )
 
-func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+type Services struct {
+	taskSvc     task.TaskService
+	lambdaSvc   lambda.LambdaService
+	endpointSvc endpoint.EndpointService
+}
 
-	tSvc := task.CreateTaskService()
+func makeServices() *Services {
 	lSvc, err := lambda.CreateLambdaService()
-
 	if err != nil {
 		panic(err)
 	}
 
-	controlSrv, err := StartControlServer(ctx, lSvc, tSvc)
+	eSvc := endpoint.CreateEndpointService(lSvc)
+	tSvc := task.CreateTaskService()
+
+	return &Services{
+		taskSvc:     tSvc,
+		lambdaSvc:   lSvc,
+		endpointSvc: eSvc,
+	}
+}
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	svcs := makeServices()
+	srv, err := StartServer(svcs)
 	if err != nil {
 		panic(err)
 	}
@@ -42,16 +59,16 @@ func main() {
 
 	srvCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := controlSrv.Shutdown(srvCtx); err != nil {
+	if err := srv.Shutdown(srvCtx); err != nil {
 		logger.L.Fatal("Server forced to shutdown", zap.Error(err))
 	}
 
 	svcCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	lSvc.Stop(svcCtx)
+	svcs.lambdaSvc.Stop(svcCtx)
 }
 
-func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc task.TaskService) (*http.Server, error) {
+func StartServer(svcs *Services) (*http.Server, error) {
 	r := gin.Default()
 
 	r.POST("/upload", func(c *gin.Context) {
@@ -76,7 +93,7 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"id": id})
+		c.JSON(http.StatusCreated, gin.H{"id": id})
 	})
 
 	r.GET("/lambda", func(c *gin.Context) {
@@ -114,7 +131,7 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 			return
 		}
 
-		lambda, err := lSvc.BootstrapLambda(c, cLambda)
+		lambda, err := svcs.lambdaSvc.BootstrapLambda(c, cLambda)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -125,19 +142,19 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 
 	r.POST("/lambda/:id/start", func(c *gin.Context) {
 		id := util.UUID()
-		tSvc.Add(id)
+		svcs.taskSvc.Add(id)
 
 		go func() {
 			ctx := context.TODO()
 
-			if err := lSvc.Start(ctx, c.Param("id")); err != nil {
-				tSvc.Failed(id, struct {
+			if err := svcs.lambdaSvc.Start(ctx, c.Param("id")); err != nil {
+				svcs.taskSvc.Failed(id, struct {
 					Error string `json:"error"`
 				}{Error: err.Error()})
 				return
 			}
 
-			tSvc.Succeeded(id, nil)
+			svcs.taskSvc.Succeeded(id, nil)
 		}()
 
 		c.JSON(http.StatusAccepted, gin.H{"task": id})
@@ -145,19 +162,19 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 
 	r.POST("/lambda/:id/destroy", func(c *gin.Context) {
 		id := util.UUID()
-		tSvc.Add(id)
+		svcs.taskSvc.Add(id)
 
 		go func() {
 			ctx := context.TODO()
 
-			if err := lSvc.Destroy(ctx, c.Param("id")); err != nil {
-				tSvc.Failed(id, struct {
+			if err := svcs.lambdaSvc.Destroy(ctx, c.Param("id")); err != nil {
+				svcs.taskSvc.Failed(id, struct {
 					Error string `json:"error"`
 				}{Error: err.Error()})
 				return
 			}
 
-			tSvc.Succeeded(id, nil)
+			svcs.taskSvc.Succeeded(id, nil)
 		}()
 
 		c.JSON(http.StatusAccepted, gin.H{"task": id})
@@ -197,7 +214,7 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 			return
 		}
 
-		runtime, err := lSvc.BootstrapRuntime(c, cRuntime)
+		runtime, err := svcs.lambdaSvc.BootstrapRuntime(c, cRuntime)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -206,8 +223,51 @@ func StartControlServer(ctx context.Context, lSvc lambda.LambdaService, tSvc tas
 		c.JSON(http.StatusCreated, runtime)
 	})
 
+	r.GET("/endpoint", func(c *gin.Context) {
+		endpoints, err := svcs.endpointSvc.List(c)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, endpoints)
+	})
+
+	r.GET("/endpoint/:id", func(c *gin.Context) {
+		endpoint, err := svcs.endpointSvc.Get(c, c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, endpoint)
+	})
+
+	r.POST("/endpoint", func(c *gin.Context) {
+		req := &api.CreateEndpoint{}
+		err := c.ShouldBind(req)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		err = model.ValidateCreateEndpoint(req)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		endpoint, err := svcs.endpointSvc.Create(c, req)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, endpoint)
+	})
+
 	r.GET("/task/:id", func(c *gin.Context) {
-		status := tSvc.Get(c.Param("id"))
+		status := svcs.taskSvc.Get(c.Param("id"))
 
 		if status == nil {
 			c.Status(http.StatusNotFound)

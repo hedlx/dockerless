@@ -1,4 +1,4 @@
-package lambda
+package db
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 
-	api "github.com/hedlx/doless/client"
 	"github.com/hedlx/doless/manager/logger"
 	"github.com/hedlx/doless/manager/util"
 )
@@ -42,7 +41,7 @@ func init() {
 	}
 }
 
-func setValue(ctx context.Context, key string, val interface{}) error {
+func SetValue(ctx context.Context, key string, val interface{}) error {
 	obj, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -56,15 +55,7 @@ func setValue(ctx context.Context, key string, val interface{}) error {
 	return nil
 }
 
-func SetLambda(ctx context.Context, lambda *api.Lambda) error {
-	return setValue(ctx, "lambda:"+lambda.Id, lambda)
-}
-
-func SetRuntime(ctx context.Context, runtime *api.Runtime) error {
-	return setValue(ctx, "runtime:"+runtime.Id, runtime)
-}
-
-func scanValues[T api.Lambda | api.Runtime](ctx context.Context, prefix string, handler func(x *T) bool) error {
+func scanValues[T any](ctx context.Context, prefix string, handler func(x *T) bool) error {
 	var cursor uint64
 	traversed := map[string]bool{}
 
@@ -104,7 +95,7 @@ func scanValues[T api.Lambda | api.Runtime](ctx context.Context, prefix string, 
 	}
 }
 
-func getValues[T api.Lambda | api.Runtime](ctx context.Context, prefix string) ([]*T, error) {
+func GetValues[T any](ctx context.Context, prefix string) ([]*T, error) {
 	res := []*T{}
 
 	err := scanValues(ctx, prefix, func(val *T) bool {
@@ -119,15 +110,7 @@ func getValues[T api.Lambda | api.Runtime](ctx context.Context, prefix string) (
 	return res, nil
 }
 
-func GetLambdas(ctx context.Context) ([]*api.Lambda, error) {
-	return getValues[api.Lambda](ctx, "lambda")
-}
-
-func GetRuntimes(ctx context.Context) ([]*api.Runtime, error) {
-	return getValues[api.Runtime](ctx, "runtime")
-}
-
-func getValueByKey[T api.Lambda | api.Runtime](ctx context.Context, key string) (*T, error) {
+func getValueByKey[T any](ctx context.Context, key string) (*T, error) {
 	rawVal, err := rdb.Get(ctx, key).Result()
 	if err != nil {
 		logger.L.Error(
@@ -153,20 +136,12 @@ func getValueByKey[T api.Lambda | api.Runtime](ctx context.Context, key string) 
 	return &val, err
 }
 
-func getValue[T api.Lambda | api.Runtime](ctx context.Context, prefix string, id string) (*T, error) {
+func GetValue[T any](ctx context.Context, prefix string, id string) (*T, error) {
 	key := prefix + ":" + id
 	return getValueByKey[T](ctx, key)
 }
 
-func GetLambda(ctx context.Context, id string) (*api.Lambda, error) {
-	return getValue[api.Lambda](ctx, "lambda", id)
-}
-
-func GetRuntime(ctx context.Context, id string) (*api.Runtime, error) {
-	return getValue[api.Runtime](ctx, "runtime", id)
-}
-
-func findValue[T api.Lambda | api.Runtime](ctx context.Context, prefix string, predicate func(x *T) bool) (*T, error) {
+func FindValue[T any](ctx context.Context, prefix string, predicate func(x *T) bool) (*T, error) {
 	var res *T
 	err := scanValues(ctx, prefix, func(val *T) bool {
 		if predicate(val) {
@@ -178,8 +153,4 @@ func findValue[T api.Lambda | api.Runtime](ctx context.Context, prefix string, p
 	})
 
 	return res, err
-}
-
-func FindLambda(ctx context.Context, predicate func(val *api.Lambda) bool) (*api.Lambda, error) {
-	return findValue(ctx, "lambda", predicate)
 }

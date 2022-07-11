@@ -7,6 +7,7 @@ import (
 
 	api "github.com/hedlx/doless/client"
 	"github.com/hedlx/doless/manager/common"
+	"github.com/hedlx/doless/manager/db"
 	"github.com/hedlx/doless/manager/docker"
 	"github.com/hedlx/doless/manager/logger"
 	"github.com/hedlx/doless/manager/util"
@@ -32,7 +33,7 @@ type LambdaService interface {
 }
 
 func CreateLambdaService() (LambdaService, error) {
-	dockerSvc, err := docker.NewDockerService(DolessID)
+	dockerSvc, err := docker.NewDockerService(db.DolessID)
 
 	if err != nil {
 		return nil, err

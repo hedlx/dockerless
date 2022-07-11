@@ -43,6 +43,17 @@ func init() {
 	}
 
 	ctx := context.Background()
+
+	for {
+		_, errBucketExists := minioCli.BucketExists(ctx, lambdaBucket)
+		if errBucketExists != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		break
+	}
+
 	if err = createBucketIfNecessary(ctx, lambdaBucket); err != nil {
 		panic(err)
 	}

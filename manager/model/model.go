@@ -37,13 +37,29 @@ func ValidateEndpoint(path string) error {
 	return nil
 }
 
-func ValidateCreateRuntime(runtime *api.CreateRuntime) error {
-	if runtime.Name == "" {
+func ValidateCreateRuntime(req *api.CreateRuntime) error {
+	if req.Name == "" {
 		return fmt.Errorf("'name' is required")
 	}
 
-	if runtime.Dockerfile == "" {
+	if req.Dockerfile == "" {
 		return fmt.Errorf("'dockerfile' is required")
+	}
+
+	return nil
+}
+
+func ValidateCreateEndpoint(req *api.CreateEndpoint) error {
+	if req.Name == "" {
+		return fmt.Errorf("'name' is required")
+	}
+
+	if req.Lambda == "" {
+		return fmt.Errorf("'lambda' is required")
+	}
+
+	if err := ValidateEndpoint(req.Path); err != nil {
+		return err
 	}
 
 	return nil
