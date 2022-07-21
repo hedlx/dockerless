@@ -28,7 +28,7 @@ jobs:
           mkdir -p ~/.local/bin
           echo ~/.local/bin >> $GITHUB_PATH
           PATH=~/.local/bin:$PATH
-          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/5.4.0/openapi-generator-cli-5.4.0.jar -O ~/.local/bin/openapi-generator-cli.jar
+          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/6.0.1/openapi-generator-cli-6.0.1.jar -O ~/.local/bin/openapi-generator-cli.jar
           echo -e '#!/bin/sh\nexec java -jar ~/.local/bin/openapi-generator-cli.jar "$@"' > ~/.local/bin/openapi-generator
           chmod +x ~/.local/bin/openapi-generator
           openapi-generator version
