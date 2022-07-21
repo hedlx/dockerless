@@ -12,6 +12,7 @@ services:
     environment:
       GIN_MODE: "release"
       PORT: ${MANAGER_PORT:-8081}
+      INTERNAL_NETWORK: doless_lambda_net
       REDIS_ENDPOINT: "redis:6379"
       MINIO_ENDPOINT: "minio:9000"
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
@@ -20,6 +21,25 @@ services:
     depends_on:
       - minio
       - redis
+    networks:
+      - doless_default_net
+      - doless_lambda_net
+  
+  handler:
+    build: handler
+    image: doless-handler:latest
+    restart: unless-stopped
+    ports:
+      - "${HANDLER_PORT:-8080}:${HANDLER_PORT:-8080}"
+    environment:
+      GIN_MODE: "release"
+      PORT: ${HANDLER_PORT:-8080}
+      REDIS_ENDPOINT: "redis:6379"
+    depends_on:
+      - redis
+    networks:
+      - doless_default_net
+      - doless_lambda_net
   minio:
     image: "quay.io/minio/minio"
     command: server --console-address ":9001" /data/minio
@@ -37,11 +57,26 @@ services:
       retries: 3
     volumes:
       - "minio_data:/data"
+    networks:
+      - doless_default_net
+
   redis:
-    image: "redis:6-alpine"
+    image: "redis:7-alpine"
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
       - "redis_data:/data"
+      - "./redis:/usr/local/etc/redis"
+    networks:
+      - doless_default_net
 
 volumes:
   minio_data:
   redis_data:
+
+networks:
+  doless_lambda_net:
+    name: doless_lambda_net
+    driver: bridge
+  doless_default_net:
+    name: doless_default_net
+    driver: bridge

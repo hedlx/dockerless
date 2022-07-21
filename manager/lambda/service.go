@@ -2,6 +2,7 @@ package lambda
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -72,7 +73,7 @@ func (s service) Init() error {
 			return
 		}
 
-		container, err := s.dockerSvc.Inspect(ctx, *lambda.Docker.ContainerId)
+		_, err := s.dockerSvc.Inspect(ctx, *lambda.Docker.ContainerId)
 
 		// TODO: check error more precisely and handle correctly
 		if err != nil {
@@ -85,10 +86,13 @@ func (s service) Init() error {
 				lambda.Docker.ContainerId = &id
 				s.updateLambda(ctx, lambda)
 			}
-		}
-
-		if err != nil || (!container.State.Running && !container.State.Restarting) {
-			s.dockerSvc.Start(ctx, &lambda)
+		} else if err := s.dockerSvc.Start(ctx, &lambda); err != nil {
+			logger.L.Error(
+				"failed to start lambda",
+				zap.Error(err),
+				zap.String("lambda", lambda.Id),
+				zap.String("container_id", *lambda.Docker.ContainerId),
+			)
 		}
 	})
 
@@ -157,20 +161,29 @@ func (s *service) BootstrapLambda(ctx context.Context, cLambda *api.CreateLambda
 	}
 	defer s.bootstrapping.Remove(cLambda.Archive)
 
-	if _, err := GetRuntime(ctx, cLambda.Runtime); err != nil {
+	existing, err := GetLambda(ctx, cLambda.Name)
+	if err != nil {
 		return nil, err
 	}
 
-	id := util.UUID()
+	if existing != nil {
+		return nil, errors.New("already exists")
+	}
 
-	if err := BootstrapLambda(ctx, id, cLambda); err != nil {
+	if runtime, err := GetRuntime(ctx, cLambda.Runtime); err != nil {
+		return nil, err
+	} else if runtime == nil {
+		return nil, errors.New("not found")
+	}
+
+	if err := BootstrapLambda(ctx, cLambda.Name, cLambda); err != nil {
 		return nil, err
 	}
 
 	createdAt := time.Now().UnixMilli()
 
 	lambda := api.Lambda{
-		Id:         id,
+		Id:         cLambda.Name,
 		Name:       cLambda.Name,
 		CreatedAt:  createdAt,
 		UpdatedAt:  createdAt,
@@ -219,6 +232,10 @@ func (s service) Start(ctx context.Context, id string) error {
 		return err
 	}
 
+	if lambda == nil {
+		return errors.New("not found")
+	}
+
 	if _, err = s.start(ctx, lambda); err != nil {
 		return err
 	}
@@ -243,6 +260,10 @@ func (s service) Destroy(ctx context.Context, id string) error {
 	lambda, err := GetLambda(ctx, id)
 	if err != nil {
 		return err
+	}
+
+	if lambda == nil {
+		return errors.New("not found")
 	}
 
 	s.inspect.Get(id, func() {})()
@@ -280,6 +301,9 @@ func (s service) inspectRoutine(ctx context.Context, lambda api.Lambda) {
 	for {
 		container, err := s.dockerSvc.Inspect(ctx, id)
 		actual, rErr := GetLambda(ctx, lambda.Id)
+		if rErr != nil && actual == nil {
+			rErr = errors.New("not found")
+		}
 
 		if rErr == nil {
 			if err != nil {
@@ -306,7 +330,7 @@ func (s service) inspectRoutine(ctx context.Context, lambda api.Lambda) {
 		} else {
 			logger.L.Error(
 				"Failed to gather lambda",
-				zap.Error(err),
+				zap.Error(rErr),
 				zap.String("id", lambda.Id),
 			)
 		}

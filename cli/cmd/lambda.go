@@ -17,7 +17,6 @@ var lambdaCmd = &cobra.Command{
 	},
 }
 
-var lambdaID string
 var lambdaName string
 var lambdaRuntime string
 var lambdaType string

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -22,37 +23,12 @@ func init() {
 	})
 
 	for {
-		res := rdb.Get(context.Background(), "doless-id")
-		err := res.Err()
-		if err == nil {
-			DolessID = res.Val()
-			break
-		}
-
-		if err == redis.Nil {
-			DolessID = util.UUID()
-			if err := rdb.Set(context.Background(), "doless-id", DolessID, 0).Err(); err != nil {
-				panic(err)
-			}
+		if err := rdb.Ping(context.Background()).Err(); err == nil {
 			break
 		}
 
 		time.Sleep(time.Second)
 	}
-}
-
-func SetValue(ctx context.Context, key string, val interface{}) error {
-	obj, err := json.Marshal(val)
-	if err != nil {
-		return err
-	}
-
-	status := rdb.Set(ctx, key, string(obj), 0)
-	if err := status.Err(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func scanValues[T any](ctx context.Context, prefix string, handler func(x *T) bool) error {
@@ -113,10 +89,6 @@ func GetValues[T any](ctx context.Context, prefix string) ([]*T, error) {
 func getValueByKey[T any](ctx context.Context, key string) (*T, error) {
 	rawVal, err := rdb.Get(ctx, key).Result()
 	if err != nil {
-		if err == redis.Nil {
-			return nil, nil
-		}
-
 		logger.L.Error(
 			"Failed to get redis members",
 			zap.Error(err),
@@ -141,20 +113,57 @@ func getValueByKey[T any](ctx context.Context, key string) (*T, error) {
 }
 
 func GetValue[T any](ctx context.Context, prefix string, id string) (*T, error) {
-	key := prefix + ":" + id
-	return getValueByKey[T](ctx, key)
+	return getValueByKey[T](ctx, prefix+":"+id)
 }
 
-func FindValue[T any](ctx context.Context, prefix string, predicate func(x *T) bool) (*T, error) {
-	var res *T
-	err := scanValues(ctx, prefix, func(val *T) bool {
-		if predicate(val) {
-			res = val
-			return false
+type SetNotification[T any] struct {
+	Value *T
+}
+
+type DelNotification struct {
+	Key string
+}
+
+func Subscribe[T any](ctx context.Context, prefix string) <-chan interface{} {
+	topic := "__keyspace@0__:" + prefix + "*"
+	logger.L.Info("Subscribe to topic", zap.String("topic", topic))
+	pubsub := rdb.PSubscribe(ctx, topic)
+	notificationsC := make(chan interface{})
+
+	go func() {
+		defer close(notificationsC)
+		logger.L.Info("Wait for notifications")
+
+		for msg := range pubsub.Channel() {
+			logger.L.Info("New notification", zap.String("channel", msg.Channel))
+			tSlice := strings.SplitN(msg.Channel, ":", 2)
+			if len(tSlice) < 2 {
+				logger.L.Error(
+					"Unexpected notification",
+					zap.String("msg", msg.Channel),
+				)
+				continue
+			}
+
+			t := msg.Payload
+			if t == "del" {
+				notificationsC <- &DelNotification{msg.Payload}
+				continue
+			}
+
+			val, err := getValueByKey[T](ctx, tSlice[1])
+			if err != nil {
+				logger.L.Error(
+					"Failed to get redis value",
+					zap.Error(err),
+					zap.String("key", msg.Payload),
+				)
+				continue
+			}
+
+			notificationsC <- &SetNotification[T]{val}
 		}
+	}()
 
-		return true
-	})
-
-	return res, err
+	return notificationsC
 }

@@ -74,6 +74,14 @@ jobs:
           version: '2022.1'
           working-directory: manager
 
+      - name: Staticcheck handler
+        if: steps.setup-openapi.outcome == 'success'
+        uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          install-go: false
+          version: '2022.1'
+          working-directory: handler
+
   cli:
     name: Build cli
     runs-on: ubuntu-latest
@@ -107,9 +115,22 @@ jobs:
         with:
           image: "doless-manager:latest"
 
+  handler:
+    name: Build handler
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⏬ Checkout
+        uses: actions/checkout@v3
+      - name: 🏗 Build image
+        run: docker build handler -t doless-handler:latest
+      - name: ⬆️ Upload doless-handler Docker image
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: "doless-handler:latest"
+
   run:
     name: Run
-    needs: [cli, manager]
+    needs: [cli, manager, handler]
     runs-on: ubuntu-latest
     steps:
       - name: ⏬ Checkout
@@ -124,6 +145,10 @@ jobs:
         uses: ishworkh/docker-image-artifact-download@v1
         with:
           image: "doless-manager:latest"
+      - name: ⬇️ Download doless-handler docker image
+        uses: ishworkh/docker-image-artifact-download@v1
+        with:
+          image: "doless-handler:latest"
       - name: Run
         run: |
           set -x

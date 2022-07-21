@@ -15,4 +15,4 @@ api:
 	cd client && go mod tidy
 
 redis-cli:
-	docker run -it --network doless_default --rm redis:6-alpine redis-cli -h redis
+	docker run -it --network doless_default_net --rm redis:7-alpine redis-cli -h redis

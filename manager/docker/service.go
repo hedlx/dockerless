@@ -4,21 +4,28 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	api "github.com/hedlx/doless/client"
-	lo "github.com/samber/lo"
+	"github.com/hedlx/doless/manager/logger"
+	"github.com/hedlx/doless/manager/util"
+	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type service struct {
-	client *client.Client
-	id     string
+	client          *client.Client
+	id              string
+	internalNetwork string
 }
 
 type DockerService interface {
@@ -38,7 +45,7 @@ func NewDockerService(id string) (DockerService, error) {
 		return nil, err
 	}
 
-	return &service{client: client, id: id}, nil
+	return &service{client: client, id: id, internalNetwork: util.GetStrVar("INTERNAL_NETWORK")}, nil
 }
 
 func (s service) ListContainers(ctx context.Context) ([]types.Container, error) {
@@ -106,16 +113,33 @@ func (s service) Create(ctx context.Context, lambda *api.Lambda, tar io.Reader) 
 }
 
 func (s service) CreateContainer(ctx context.Context, lambda *api.Lambda) (string, error) {
-	container, err := s.client.ContainerCreate(ctx, &container.Config{
+	creator := &ContainerCreator{
+		client: s.client,
+		lambda: lambda,
+	}
+
+	err := creator.createContainer(ctx, &container.Config{
 		Image:  *lambda.Docker.Image,
 		Labels: map[string]string{"doless": s.id},
-	}, nil, nil, nil, *lambda.Docker.Container)
+	})
 	if err != nil {
-		s.client.ImageRemove(ctx, *lambda.Docker.Image, types.ImageRemoveOptions{})
+		creator.rollback()
 		return "", err
 	}
 
-	return container.ID, nil
+	err = creator.setupNetwork(ctx, types.NetworkListOptions{
+		Filters: filters.NewArgs(filters.KeyValuePair{
+			Key:   "name",
+			Value: s.internalNetwork,
+		}),
+	})
+
+	if err != nil {
+		creator.rollback()
+		return "", err
+	}
+
+	return creator.container.ID, nil
 }
 
 func (s service) Start(ctx context.Context, lambda *api.Lambda) error {
@@ -178,4 +202,64 @@ func (s service) Remove(ctx context.Context, lambda *api.Lambda) error {
 	}
 
 	return nil
+}
+
+type ContainerCreator struct {
+	client    *client.Client
+	lambda    *api.Lambda
+	container *container.ContainerCreateCreatedBody
+}
+
+func (c *ContainerCreator) createContainer(ctx context.Context, conf *container.Config) error {
+	container, err := c.client.ContainerCreate(ctx, conf, nil, nil, nil, *c.lambda.Docker.Container)
+	if err != nil {
+		return err
+	}
+
+	c.container = &container
+
+	return nil
+}
+
+func (c *ContainerCreator) setupNetwork(ctx context.Context, opts types.NetworkListOptions) error {
+	nets, err := c.client.NetworkList(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	if len(nets) != 1 {
+		return errors.New("invalid networks length")
+	}
+
+	if err := c.client.NetworkConnect(ctx, nets[0].ID, c.container.ID, &network.EndpointSettings{Aliases: []string{c.lambda.Name}}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *ContainerCreator) rollback() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	if c.container != nil {
+		err := c.client.ContainerRemove(ctx, c.container.ID, types.ContainerRemoveOptions{})
+		if err != nil {
+			logger.L.Error(
+				"Failed to remove container",
+				zap.Error(err),
+				zap.String("id", c.container.ID),
+			)
+		} else {
+			c.container = nil
+		}
+	}
+
+	if _, err := c.client.ImageRemove(ctx, *c.lambda.Docker.Image, types.ImageRemoveOptions{}); err != nil {
+		logger.L.Error(
+			"Failed to remove image",
+			zap.Error(err),
+			zap.String("id", *c.lambda.Docker.Image),
+		)
+	}
 }
