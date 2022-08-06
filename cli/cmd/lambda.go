@@ -61,7 +61,7 @@ var lambdaStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start lambda",
 	Run: func(cmd *cobra.Command, args []string) {
-		lambda, err := ops.StartLambda(cmd.Context(), endpointLambdaID)
+		lambda, err := ops.StartLambda(cmd.Context(), args[0])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
@@ -94,11 +94,12 @@ var lambdaDeployCmd = &cobra.Command{
 	},
 }
 
-var lambdaDestoyCmd = &cobra.Command{
+var lambdaDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "Destroy lambda",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := ops.DestroyLambda(cmd.Context(), endpointLambdaID)
+		err := ops.DestroyLambda(cmd.Context(), args[0])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
@@ -112,19 +113,13 @@ func init() {
 	lambdaCmd.AddCommand(lambdaCreateCmd)
 	lambdaCmd.AddCommand(lambdaListCmd)
 	lambdaCmd.AddCommand(lambdaStartCmd)
-	lambdaCmd.AddCommand(lambdaDestoyCmd)
+	lambdaCmd.AddCommand(lambdaDestroyCmd)
 
 	lambdaCreateCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaCreateCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
-	lambdaCreateCmd.Flags().StringVarP(&lambdaType, "type", "t", "EDNPOINT", "type of lambda (ENDPOINT | INTERNAL)")
+	lambdaCreateCmd.Flags().StringVarP(&lambdaType, "type", "t", "ENDPOINT", "type of lambda (ENDPOINT | INTERNAL)")
 	lambdaCreateCmd.MarkFlagRequired("name")
 	lambdaCreateCmd.MarkFlagRequired("runtime")
-
-	lambdaStartCmd.Flags().StringVarP(&endpointLambdaID, "id", "i", "", "id")
-	lambdaStartCmd.MarkFlagRequired("id")
-
-	lambdaDestoyCmd.Flags().StringVarP(&endpointLambdaID, "id", "i", "", "id")
-	lambdaDestoyCmd.MarkFlagRequired("id")
 
 	lambdaDeployCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaDeployCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
