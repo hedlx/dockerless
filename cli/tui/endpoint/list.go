@@ -39,7 +39,7 @@ func InitEndpointListModel(m *EndpointListModel) *EndpointListModel {
 }
 
 func (m EndpointListModel) Init() tea.Cmd {
-	return m.Lister.List()
+	return tea.Batch(m.Lister.List(), m.loadingSpinner.Tick)
 }
 
 func (m EndpointListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -54,7 +54,9 @@ func (m EndpointListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.loadingSpinner, cmd = m.loadingSpinner.Update(msg)
+	return m, cmd
 }
 
 func (m EndpointListModel) View() string {

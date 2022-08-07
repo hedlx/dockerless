@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -30,12 +29,18 @@ type endpointOps struct {
 
 func (r *endpointOps) Create(name string, path string, lambda string) tea.Cmd {
 	return func() tea.Msg {
-		ops.CreateEndpoint(r.ctx, &api.CreateEndpoint{
+		endpt, err := ops.CreateEndpoint(r.ctx, &api.CreateEndpoint{
 			Name:   name,
 			Path:   path,
 			Lambda: lambda,
 		})
-		return nil
+
+		return endpoint.EndpointCreateResponseMsg{
+			Resp: &endpoint.EndpointCreateResponse{
+				Endpoint: endpt,
+				Err:      err,
+			},
+		}
 	}
 }
 
@@ -55,20 +60,34 @@ func (r *endpointOps) List() tea.Cmd {
 var endpointCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create",
-	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		endpoint, err := ops.CreateEndpoint(cmd.Context(), &api.CreateEndpoint{
-			Name:   endpointName,
-			Path:   args[0],
-			Lambda: endpointLambdaID,
-		})
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+		var path string
+		if len(args) > 0 {
+			path = args[0]
 		}
 
-		j, _ := json.MarshalIndent(endpoint, "", "  ")
-		fmt.Println(string(j))
+		var lambda *api.Lambda
+		if endpointLambdaID != "" {
+			var err error
+			lambda, err = ops.GetLambda(cmd.Context(), endpointLambdaID)
+			if err != nil {
+				fmt.Printf("Failed to get lambda: %s", err)
+				os.Exit(1)
+			}
+		}
+		m := &endpoint.EndpointCreateModel{
+			Name:            endpointName,
+			Path:            path,
+			Lambda:          lambda,
+			EndpointCreator: &endpointOps{ctx: cmd.Context()},
+			LambdaLister:    &lambdaOps{ctx: cmd.Context()},
+		}
+		p := tea.NewProgram(endpoint.InitRuntimeCreateModel(m))
+
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -96,6 +115,4 @@ func init() {
 
 	endpointCreateCmd.Flags().StringVarP(&endpointName, "name", "n", "", "endpoint name")
 	endpointCreateCmd.Flags().StringVarP(&endpointLambdaID, "lambda-id", "l", "", "lambda id")
-	endpointCreateCmd.MarkFlagRequired("name")
-	endpointCreateCmd.MarkFlagRequired("lambda-id")
 }

@@ -126,7 +126,9 @@ func (m RuntimeCreateModel) handleRMLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd
 		return m.incStep()
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.loadingSpinner, cmd = m.loadingSpinner.Update(msg)
+	return m, cmd
 }
 
 func (m *RuntimeCreateModel) incStep(cmds ...tea.Cmd) (*RuntimeCreateModel, tea.Cmd) {
@@ -141,7 +143,7 @@ func (m *RuntimeCreateModel) incStep(cmds ...tea.Cmd) (*RuntimeCreateModel, tea.
 		m.nameInput.Blur()
 		m.static = fmt.Sprintf("%s\nName: %s", m.static, m.Name)
 
-		return m.incStep(m.Creator.Create(m.Name, m.Path))
+		return m.incStep(m.Creator.Create(m.Name, m.Path), m.loadingSpinner.Tick)
 	}
 
 	if m.step == RMCLoadingStep && m.resp != nil {
