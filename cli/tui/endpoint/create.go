@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	EMCInitStep            = 0
-	EMCNameStep            = iota
-	EMCLambdasLoadingStep  = iota
-	EMCLambdaSelectionStep = iota
-	EMCPathStep            = iota
-	EMCLoadingStep         = iota
+	ECInitStep            = 0
+	ECNameStep            = iota
+	ECLambdasLoadingStep  = iota
+	ECLambdaSelectionStep = iota
+	ECEndpointStep        = iota
+	ECLoadingStep         = iota
 )
 
 type EndpointCreateResponse struct {
@@ -54,7 +54,7 @@ var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type EndpointCreateModel struct {
 	Name            string
-	Path            string
+	Endpoint        string
 	Lambda          *api.Lambda
 	EndpointCreator EndpointCreator
 	LambdaLister    lambda.LambdaLister
@@ -72,7 +72,7 @@ type EndpointCreateModel struct {
 	loadingSpinner spinner.Model
 }
 
-func InitRuntimeCreateModel(m *EndpointCreateModel) *EndpointCreateModel {
+func InitEndpointCreateModel(m *EndpointCreateModel) *EndpointCreateModel {
 	m.nameInput = textinput.New()
 	m.nameInput.CharLimit = 156
 	m.nameInput.Placeholder = "Endpoint name"
@@ -111,16 +111,16 @@ func (m EndpointCreateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch m.step {
-	case EMCNameStep:
-		return m.handleEMCNameStep(msg)
-	case EMCLambdasLoadingStep:
-		return m.handleEMCLambdasLoadingStep(msg)
-	case EMCLambdaSelectionStep:
-		return m.handleEMCLambdaSelectionStep(msg)
-	case EMCPathStep:
-		return m.handleEMCPathStep(msg)
-	case EMCLoadingStep:
-		return m.handleEMCLoadingStep(msg)
+	case ECNameStep:
+		return m.handleECNameStep(msg)
+	case ECLambdasLoadingStep:
+		return m.handleECLambdasLoadingStep(msg)
+	case ECLambdaSelectionStep:
+		return m.handleECLambdaSelectionStep(msg)
+	case ECEndpointStep:
+		return m.handleECEndpointStep(msg)
+	case ECLoadingStep:
+		return m.handleECLoadingStep(msg)
 	}
 	return m, nil
 }
@@ -132,22 +132,22 @@ func (m EndpointCreateModel) View() string {
 	}
 
 	active := ""
-	if m.step == EMCNameStep {
+	if m.step == ECNameStep {
 		active = docStyle.Render(m.nameInput.View())
-	} else if m.step == EMCLambdasLoadingStep {
+	} else if m.step == ECLambdasLoadingStep {
 		active = docStyle.Render(fmt.Sprintf("%s Loading lambdas...", m.loadingSpinner.View()))
-	} else if m.step == EMCLambdaSelectionStep {
+	} else if m.step == ECLambdaSelectionStep {
 		return m.endpointList.View()
-	} else if m.step == EMCPathStep {
+	} else if m.step == ECEndpointStep {
 		active = docStyle.Render(m.pathInput.View())
-	} else if m.step == EMCLoadingStep {
+	} else if m.step == ECLoadingStep {
 		active = docStyle.Render(fmt.Sprintf("%s Creating endpoint...", m.loadingSpinner.View()))
 	}
 
 	return fmt.Sprintf("%s%s", static, active)
 }
 
-func (m EndpointCreateModel) handleEMCLambdasLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EndpointCreateModel) handleECLambdasLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case lambda.LambdaListResponseMsg:
 		if msg.Resp.Err != nil {
@@ -175,7 +175,7 @@ func (m EndpointCreateModel) handleEMCLambdasLoadingStep(msg tea.Msg) (tea.Model
 	return m, cmd
 }
 
-func (m EndpointCreateModel) handleEMCLambdaSelectionStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EndpointCreateModel) handleECLambdaSelectionStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -192,7 +192,7 @@ func (m EndpointCreateModel) handleEMCLambdaSelectionStep(msg tea.Msg) (tea.Mode
 	return m, cmd
 }
 
-func (m EndpointCreateModel) handleEMCNameStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EndpointCreateModel) handleECNameStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -209,12 +209,12 @@ func (m EndpointCreateModel) handleEMCNameStep(msg tea.Msg) (tea.Model, tea.Cmd)
 	return m, cmd
 }
 
-func (m EndpointCreateModel) handleEMCPathStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EndpointCreateModel) handleECEndpointStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			m.Path = m.pathInput.Value()
+			m.Endpoint = m.pathInput.Value()
 			return m.incStep()
 		case tea.KeyEsc:
 			return m, tea.Quit
@@ -226,7 +226,7 @@ func (m EndpointCreateModel) handleEMCPathStep(msg tea.Msg) (tea.Model, tea.Cmd)
 	return m, cmd
 }
 
-func (m EndpointCreateModel) handleEMCLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EndpointCreateModel) handleECLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case EndpointCreateResponseMsg:
 		m.resp = msg.Resp
@@ -239,12 +239,12 @@ func (m EndpointCreateModel) handleEMCLoadingStep(msg tea.Msg) (tea.Model, tea.C
 }
 
 func (m *EndpointCreateModel) incStep(cmds ...tea.Cmd) (*EndpointCreateModel, tea.Cmd) {
-	if m.step == EMCInitStep {
+	if m.step == ECInitStep {
 		m.step++
 		return m.incStep(m.nameInput.SetCursorMode(textinput.CursorBlink), m.nameInput.Focus())
 	}
 
-	if m.step == EMCNameStep && m.Name != "" {
+	if m.step == ECNameStep && m.Name != "" {
 		m.step++
 		m.nameInput.Blur()
 		m.static = fmt.Sprintf("%s\nName: %s", m.static, m.Name)
@@ -252,7 +252,7 @@ func (m *EndpointCreateModel) incStep(cmds ...tea.Cmd) (*EndpointCreateModel, te
 		return m.incStep(m.LambdaLister.List(), m.loadingSpinner.Tick)
 	}
 
-	if m.step == EMCLambdasLoadingStep && (m.Lambda != nil || m.lambdasLoaded) {
+	if m.step == ECLambdasLoadingStep && (m.Lambda != nil || m.lambdasLoaded) {
 		m.step++
 
 		target := []list.Item{}
@@ -263,22 +263,22 @@ func (m *EndpointCreateModel) incStep(cmds ...tea.Cmd) (*EndpointCreateModel, te
 		return m.incStep(m.endpointList.SetItems(target))
 	}
 
-	if m.step == EMCLambdaSelectionStep && m.Lambda != nil {
+	if m.step == ECLambdaSelectionStep && m.Lambda != nil {
 		m.step++
 		m.static = fmt.Sprintf("%s\nLambda endpoint: %s", m.static, m.Lambda.Name)
 
 		return m.incStep(m.pathInput.SetCursorMode(textinput.CursorBlink), m.pathInput.Focus())
 	}
 
-	if m.step == EMCPathStep && m.Path != "" {
+	if m.step == ECEndpointStep && m.Endpoint != "" {
 		m.step++
 		m.pathInput.Blur()
 		m.static = fmt.Sprintf("%s\nPath: %s", m.static, m.Lambda.Name)
 
-		return m.incStep(m.EndpointCreator.Create(m.Name, m.Path, m.Lambda.Id), m.loadingSpinner.Tick)
+		return m.incStep(m.EndpointCreator.Create(m.Name, m.Endpoint, m.Lambda.Id), m.loadingSpinner.Tick)
 	}
 
-	if m.step == EMCLoadingStep && m.resp != nil {
+	if m.step == ECLoadingStep && m.resp != nil {
 		m.step++
 		if m.resp.Err != nil {
 			m.static = fmt.Sprintf("%s\n\nFailed to create endpoint: %s", m.static, m.resp.Err)

@@ -24,9 +24,9 @@ type runtimeOps struct {
 	ctx context.Context
 }
 
-func (r *runtimeOps) Create(name string, path string) tea.Cmd {
+func (op *runtimeOps) Create(name string, path string) tea.Cmd {
 	return func() tea.Msg {
-		rt, err := ops.CreateRuntime(r.ctx, name, path)
+		rt, err := ops.CreateRuntime(op.ctx, name, path)
 
 		return runtime.RuntimeCreateResponseMsg{
 			Resp: &runtime.RuntimeCreateResponse{
@@ -37,9 +37,9 @@ func (r *runtimeOps) Create(name string, path string) tea.Cmd {
 	}
 }
 
-func (r *runtimeOps) List() tea.Cmd {
+func (op *runtimeOps) List() tea.Cmd {
 	return func() tea.Msg {
-		rt, err := ops.ListRuntimes(r.ctx)
+		rt, err := ops.ListRuntimes(op.ctx)
 
 		return runtime.RuntimeListResponseMsg{
 			Resp: &runtime.RuntimeListResponse{

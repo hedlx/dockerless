@@ -27,9 +27,9 @@ type endpointOps struct {
 	ctx context.Context
 }
 
-func (r *endpointOps) Create(name string, path string, lambda string) tea.Cmd {
+func (op *endpointOps) Create(name string, path string, lambda string) tea.Cmd {
 	return func() tea.Msg {
-		endpt, err := ops.CreateEndpoint(r.ctx, &api.CreateEndpoint{
+		endpt, err := ops.CreateEndpoint(op.ctx, &api.CreateEndpoint{
 			Name:   name,
 			Path:   path,
 			Lambda: lambda,
@@ -44,9 +44,9 @@ func (r *endpointOps) Create(name string, path string, lambda string) tea.Cmd {
 	}
 }
 
-func (r *endpointOps) List() tea.Cmd {
+func (op *endpointOps) List() tea.Cmd {
 	return func() tea.Msg {
-		endpts, err := ops.ListEndpoints(r.ctx)
+		endpts, err := ops.ListEndpoints(op.ctx)
 
 		return endpoint.EndpointListResponseMsg{
 			Resp: &endpoint.EndpointListResponse{
@@ -61,9 +61,9 @@ var endpointCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create",
 	Run: func(cmd *cobra.Command, args []string) {
-		var path string
+		var epoint string
 		if len(args) > 0 {
-			path = args[0]
+			epoint = args[0]
 		}
 
 		var lambda *api.Lambda
@@ -77,12 +77,12 @@ var endpointCreateCmd = &cobra.Command{
 		}
 		m := &endpoint.EndpointCreateModel{
 			Name:            endpointName,
-			Path:            path,
+			Endpoint:        epoint,
 			Lambda:          lambda,
 			EndpointCreator: &endpointOps{ctx: cmd.Context()},
 			LambdaLister:    &lambdaOps{ctx: cmd.Context()},
 		}
-		p := tea.NewProgram(endpoint.InitRuntimeCreateModel(m))
+		p := tea.NewProgram(endpoint.InitEndpointCreateModel(m))
 
 		if err := p.Start(); err != nil {
 			fmt.Printf("Error: %s", err)

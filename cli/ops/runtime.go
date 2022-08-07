@@ -27,6 +27,17 @@ func CreateRuntime(ctx context.Context, name string, path string) (*api.Runtime,
 	return createResp, nil
 }
 
+func GetRuntime(ctx context.Context, id string) (*api.Runtime, error) {
+	resp, _, err := client.RuntimeApi.
+		GetRuntime(ctx, id).
+		Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error when calling `LambdaApi.GetRuntime``: %v", err)
+	}
+
+	return resp, nil
+}
+
 func ListRuntimes(ctx context.Context) ([]api.Runtime, error) {
 	listResp, _, err := client.RuntimeApi.
 		ListRuntimes(ctx).

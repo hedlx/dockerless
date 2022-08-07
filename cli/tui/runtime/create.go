@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	RMCInitStep    = 0
-	RMCNameStep    = iota
-	RMCLoadingStep = iota
+	RCInitStep    = 0
+	RCNameStep    = iota
+	RCLoadingStep = iota
 )
 
 type RuntimeCreateResponse struct {
@@ -78,10 +78,10 @@ func (m RuntimeCreateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch m.step {
-	case RMCNameStep:
-		return m.handleRMNameStep(msg)
-	case RMCLoadingStep:
-		return m.handleRMLoadingStep(msg)
+	case RCNameStep:
+		return m.handleRCNameStep(msg)
+	case RCLoadingStep:
+		return m.handleRCLoadingStep(msg)
 	}
 	return m, nil
 }
@@ -93,16 +93,16 @@ func (m RuntimeCreateModel) View() string {
 	}
 
 	active := ""
-	if m.step == RMCNameStep {
+	if m.step == RCNameStep {
 		active = m.nameInput.View()
-	} else if m.step == RMCLoadingStep {
+	} else if m.step == RCLoadingStep {
 		active = fmt.Sprintf("%s Creating runtime...", m.loadingSpinner.View())
 	}
 
 	return fmt.Sprintf("%s%s", static, active)
 }
 
-func (m RuntimeCreateModel) handleRMNameStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RuntimeCreateModel) handleRCNameStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -119,7 +119,7 @@ func (m RuntimeCreateModel) handleRMNameStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m RuntimeCreateModel) handleRMLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RuntimeCreateModel) handleRCLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case RuntimeCreateResponseMsg:
 		m.resp = msg.Resp
@@ -132,13 +132,13 @@ func (m RuntimeCreateModel) handleRMLoadingStep(msg tea.Msg) (tea.Model, tea.Cmd
 }
 
 func (m *RuntimeCreateModel) incStep(cmds ...tea.Cmd) (*RuntimeCreateModel, tea.Cmd) {
-	if m.step == RMCInitStep {
+	if m.step == RCInitStep {
 		m.step++
 		m.static = fmt.Sprintf("Path: %s", m.Path)
 		return m.incStep(m.nameInput.SetCursorMode(textinput.CursorBlink), m.nameInput.Focus())
 	}
 
-	if m.step == RMCNameStep && m.Name != "" {
+	if m.step == RCNameStep && m.Name != "" {
 		m.step++
 		m.nameInput.Blur()
 		m.static = fmt.Sprintf("%s\nName: %s", m.static, m.Name)
@@ -146,7 +146,7 @@ func (m *RuntimeCreateModel) incStep(cmds ...tea.Cmd) (*RuntimeCreateModel, tea.
 		return m.incStep(m.Creator.Create(m.Name, m.Path), m.loadingSpinner.Tick)
 	}
 
-	if m.step == RMCLoadingStep && m.resp != nil {
+	if m.step == RCLoadingStep && m.resp != nil {
 		m.step++
 		if m.resp.Err != nil {
 			m.static = fmt.Sprintf("%s\n\nFailed to create runtime: %s", m.static, m.resp.Err)

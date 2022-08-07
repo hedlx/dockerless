@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hedlx/doless/cli/ops"
 	"github.com/hedlx/doless/cli/tui/lambda"
+	api "github.com/hedlx/doless/client"
 	"github.com/spf13/cobra"
 )
 
@@ -28,9 +28,26 @@ type lambdaOps struct {
 	ctx context.Context
 }
 
-func (r *lambdaOps) List() tea.Cmd {
+func (op *lambdaOps) Create(name string, runtime string, lambdaType string, path string) tea.Cmd {
 	return func() tea.Msg {
-		lambdas, err := ops.ListLambdas(r.ctx)
+		l, err := ops.CreateLambda(op.ctx, ops.CreateLambdaM{
+			Name:       name,
+			Runtime:    runtime,
+			LambdaType: lambdaType,
+		}, path)
+
+		return lambda.LambdaCreateResponseMsg{
+			Resp: &lambda.LambdaCreateResponse{
+				Lambda: l,
+				Err:    err,
+			},
+		}
+	}
+}
+
+func (op *lambdaOps) List() tea.Cmd {
+	return func() tea.Msg {
+		lambdas, err := ops.ListLambdas(op.ctx)
 
 		return lambda.LambdaListResponseMsg{
 			Resp: &lambda.LambdaListResponse{
@@ -41,24 +58,65 @@ func (r *lambdaOps) List() tea.Cmd {
 	}
 }
 
+func (op *lambdaOps) Start(id string) tea.Cmd {
+	return func() tea.Msg {
+		l, err := ops.StartLambda(op.ctx, id)
+
+		return lambda.LambdaStartResponseMsg{
+			Resp: &lambda.LambdaStartResponse{
+				Lambda: l,
+				Err:    err,
+			},
+		}
+	}
+}
+
+func (op *lambdaOps) Destroy(id string) tea.Cmd {
+	return func() tea.Msg {
+		err := ops.DestroyLambda(op.ctx, id)
+
+		return lambda.LambdaDestroyResponseMsg{
+			Resp: &lambda.LambdaDestroyResponse{
+				Err: err,
+			},
+		}
+	}
+}
+
+func lambdaCreateProgram(cmd *cobra.Command, args []string) *tea.Program {
+	var runtime *api.Runtime
+	if lambdaRuntime != "" {
+		var err error
+		runtime, err = ops.GetRuntime(cmd.Context(), lambdaRuntime)
+		if err != nil {
+			fmt.Printf("Failed to get runtime: %s", err)
+			os.Exit(1)
+		}
+	}
+
+	m := &lambda.LambdaCreateModel{
+		Name:          lambdaName,
+		Runtime:       runtime,
+		LambdaType:    lambdaType,
+		Path:          args[0],
+		LambdaCreator: &lambdaOps{ctx: cmd.Context()},
+		RuntimeLister: &runtimeOps{ctx: cmd.Context()},
+	}
+
+	return tea.NewProgram(lambda.InitLambdaCreateModel(m))
+}
+
 var lambdaCreateCmd = &cobra.Command{
 	Use:   "create [path]",
 	Short: "Create new lambda",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		lambdaM := ops.CreateLambdaM{
-			Name:       lambdaName,
-			Runtime:    lambdaRuntime,
-			LambdaType: lambdaType,
-		}
-		lambda, err := ops.CreateLambda(cmd.Context(), lambdaM, args[0])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
-		}
+		p := lambdaCreateProgram(cmd, args)
 
-		j, _ := json.MarshalIndent(lambda, "", "  ")
-		fmt.Println(string(j))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -75,6 +133,7 @@ var lambdaListCmd = &cobra.Command{
 
 		if err := p.Start(); err != nil {
 			fmt.Printf("Error: %s", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -82,15 +141,18 @@ var lambdaListCmd = &cobra.Command{
 var lambdaStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start lambda",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		lambda, err := ops.StartLambda(cmd.Context(), args[0])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+		m := &lambda.LambdaStartModel{
+			LambdaID: args[0],
+			Starter:  &lambdaOps{ctx: cmd.Context()},
 		}
 
-		j, _ := json.MarshalIndent(lambda, "", "  ")
-		fmt.Println(string(j))
+		p := tea.NewProgram(lambda.InitLambdaStartModel(m))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -99,20 +161,30 @@ var lambdaDeployCmd = &cobra.Command{
 	Short: "Deploy lambda, aka create + start",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		lambdaM := ops.CreateLambdaM{
-			Name:       lambdaName,
-			Runtime:    lambdaRuntime,
-			LambdaType: lambdaType,
-		}
-
-		lambda, err := ops.DeployLambda(cmd.Context(), lambdaM, args[0])
+		p := lambdaCreateProgram(cmd, args)
+		m, err := p.StartReturningModel()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
 		}
 
-		j, _ := json.MarshalIndent(lambda, "", "  ")
-		fmt.Println(string(j))
+		cm := m.(*lambda.LambdaCreateModel)
+		l := cm.GetLambda()
+		if l == nil {
+			// The error has already been printed as part of the previous program output
+			os.Exit(1)
+		}
+
+		sm := &lambda.LambdaStartModel{
+			LambdaID: cm.GetLambda().Id,
+			Starter:  &lambdaOps{ctx: cmd.Context()},
+		}
+
+		p = tea.NewProgram(lambda.InitLambdaStartModel(sm))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -121,10 +193,15 @@ var lambdaDestroyCmd = &cobra.Command{
 	Short: "Destroy lambda",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := ops.DestroyLambda(cmd.Context(), args[0])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+		m := &lambda.LambdaDestroyModel{
+			LambdaID:  args[0],
+			Destroyer: &lambdaOps{ctx: cmd.Context()},
+		}
+
+		p := tea.NewProgram(lambda.InitLambdaDestroyModel(m))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -139,13 +216,9 @@ func init() {
 
 	lambdaCreateCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaCreateCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
-	lambdaCreateCmd.Flags().StringVarP(&lambdaType, "type", "t", "ENDPOINT", "type of lambda (ENDPOINT | INTERNAL)")
-	lambdaCreateCmd.MarkFlagRequired("name")
-	lambdaCreateCmd.MarkFlagRequired("runtime")
+	lambdaCreateCmd.Flags().StringVarP(&lambdaType, "type", "t", "", "type of lambda (ENDPOINT | INTERNAL)")
 
 	lambdaDeployCmd.Flags().StringVarP(&lambdaName, "name", "n", "", "name")
 	lambdaDeployCmd.Flags().StringVarP(&lambdaRuntime, "runtime", "r", "", "runtime")
-	lambdaDeployCmd.Flags().StringVarP(&lambdaType, "type", "e", "ENDPOINT", "type of lambda (ENDPOINT | INTERNAL)")
-	lambdaDeployCmd.MarkFlagRequired("name")
-	lambdaDeployCmd.MarkFlagRequired("runtime")
+	lambdaDeployCmd.Flags().StringVarP(&lambdaType, "type", "e", "", "type of lambda (ENDPOINT | INTERNAL)")
 }
