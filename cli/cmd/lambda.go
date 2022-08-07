@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hedlx/doless/cli/ops"
+	"github.com/hedlx/doless/cli/tui/lambda"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +23,23 @@ var lambdaCmd = &cobra.Command{
 var lambdaName string
 var lambdaRuntime string
 var lambdaType string
+
+type lambdaOps struct {
+	ctx context.Context
+}
+
+func (r *lambdaOps) List() tea.Cmd {
+	return func() tea.Msg {
+		lambdas, err := ops.ListLambdas(r.ctx)
+
+		return lambda.LambdaListResponseMsg{
+			Resp: &lambda.LambdaListResponse{
+				Lambdas: lambdas,
+				Err:     err,
+			},
+		}
+	}
+}
 
 var lambdaCreateCmd = &cobra.Command{
 	Use:   "create [path]",
@@ -46,14 +66,16 @@ var lambdaListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List lambdas",
 	Run: func(cmd *cobra.Command, args []string) {
-		lambdas, err := ops.ListLambdas(cmd.Context())
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+		m := &lambda.LambdaListModel{
+			Lister: &lambdaOps{
+				ctx: cmd.Context(),
+			},
 		}
+		p := tea.NewProgram(lambda.InitLambdaListModel(m))
 
-		j, _ := json.MarshalIndent(lambdas, "", "  ")
-		fmt.Println(string(j))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+		}
 	},
 }
 

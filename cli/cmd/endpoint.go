@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hedlx/doless/cli/ops"
+	"github.com/hedlx/doless/cli/tui/endpoint"
 	api "github.com/hedlx/doless/client"
 	"github.com/spf13/cobra"
 )
@@ -20,6 +23,34 @@ var endpointCmd = &cobra.Command{
 
 var endpointName string
 var endpointLambdaID string
+
+type endpointOps struct {
+	ctx context.Context
+}
+
+func (r *endpointOps) Create(name string, path string, lambda string) tea.Cmd {
+	return func() tea.Msg {
+		ops.CreateEndpoint(r.ctx, &api.CreateEndpoint{
+			Name:   name,
+			Path:   path,
+			Lambda: lambda,
+		})
+		return nil
+	}
+}
+
+func (r *endpointOps) List() tea.Cmd {
+	return func() tea.Msg {
+		endpts, err := ops.ListEndpoints(r.ctx)
+
+		return endpoint.EndpointListResponseMsg{
+			Resp: &endpoint.EndpointListResponse{
+				Endpoints: endpts,
+				Err:       err,
+			},
+		}
+	}
+}
 
 var endpointCreateCmd = &cobra.Command{
 	Use:   "create",
@@ -45,14 +76,16 @@ var endpointListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List",
 	Run: func(cmd *cobra.Command, args []string) {
-		endpoints, err := ops.ListEndpoints(cmd.Context())
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
+		m := &endpoint.EndpointListModel{
+			Lister: &endpointOps{
+				ctx: cmd.Context(),
+			},
 		}
+		p := tea.NewProgram(endpoint.InitEndpointListModel(m))
 
-		j, _ := json.MarshalIndent(endpoints, "", "  ")
-		fmt.Println(string(j))
+		if err := p.Start(); err != nil {
+			fmt.Printf("Error: %s", err)
+		}
 	},
 }
 

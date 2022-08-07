@@ -63,9 +63,9 @@ func (m RuntimeListModel) View() string {
 	}
 
 	if m.resp.Err != nil {
-		return fmt.Sprintf("Failed to create runtime: %s", m.resp.Err)
+		return fmt.Sprintf("Failed to create runtime: %s\n", m.resp.Err)
 	} else {
 		j, _ := json.MarshalIndent(m.resp.Runtimes, "", "  ")
-		return string(j)
+		return string(j) + "\n"
 	}
 }

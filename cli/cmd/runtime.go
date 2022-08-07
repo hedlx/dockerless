@@ -20,11 +20,11 @@ var runtimeCmd = &cobra.Command{
 
 var runtimeName string
 
-type runtimeCL struct {
+type runtimeOps struct {
 	ctx context.Context
 }
 
-func (r *runtimeCL) Create(name string, path string) tea.Cmd {
+func (r *runtimeOps) Create(name string, path string) tea.Cmd {
 	return func() tea.Msg {
 		rt, err := ops.CreateRuntime(r.ctx, name, path)
 
@@ -37,7 +37,7 @@ func (r *runtimeCL) Create(name string, path string) tea.Cmd {
 	}
 }
 
-func (r *runtimeCL) List() tea.Cmd {
+func (r *runtimeOps) List() tea.Cmd {
 	return func() tea.Msg {
 		rt, err := ops.ListRuntimes(r.ctx)
 
@@ -58,7 +58,7 @@ var runtimeCreateCmd = &cobra.Command{
 		m := &runtime.RuntimeCreateModel{
 			Name: runtimeName,
 			Path: args[0],
-			Creator: &runtimeCL{
+			Creator: &runtimeOps{
 				ctx: cmd.Context(),
 			},
 		}
@@ -75,7 +75,7 @@ var runtimeListCmd = &cobra.Command{
 	Short: "List",
 	Run: func(cmd *cobra.Command, args []string) {
 		m := &runtime.RuntimeListModel{
-			Lister: &runtimeCL{
+			Lister: &runtimeOps{
 				ctx: cmd.Context(),
 			},
 		}
